@@ -68,7 +68,7 @@ def test_server():
         stdout, _ = process.communicate()
     thread = threading.Thread(target=run_server)
     thread.start()
-    time.sleep(0.5)
+    time.sleep(2)
     try:
         connection = socket.socket()
         connection.connect(_SERVER_ADDRESS)
