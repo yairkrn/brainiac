@@ -6,9 +6,10 @@ import threading
 import os
 import contextlib
 
-from cli import CommandLineInterface
-from listener import Listener
-from thought import Thought, ThoughtHeader
+from .cli import CommandLineInterface
+from .thought import Thought
+from .thought import ThoughtHeader
+from .utils import Listener
 
 
 cli = CommandLineInterface()

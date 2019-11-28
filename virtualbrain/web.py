@@ -5,7 +5,7 @@ import functools
 from datetime import datetime
 from pathlib import Path
 
-from website import Website
+from .website import Website
 
 
 INDEX_HTML = '''

@@ -2,9 +2,9 @@ import socket
 import struct
 import datetime
 
-from cli import CommandLineInterface
-from connection import Connection
-from thought import Thought
+from .thought import Thought
+from .cli import CommandLineInterface
+from .utils import Connection
 
 
 cli = CommandLineInterface()
