@@ -99,26 +99,3 @@ def run_webserver(address, data_dir):
 
     website.run(address)
 
-
-def main(argv):
-    if len(argv) != 3:
-        print(f'USAGE: {argv[0]} <address> <data_dir>')
-        return 1
-
-    try:
-        address_str, data_dir = sys.argv[1:]
-        ip, port_str = address_str.split(':')
-        address = (ip, int(port_str))
-        run_webserver(address, data_dir)
-        print('done')
-        return 0
-
-    except Exception as error:
-        print(f'ERROR: {error}')
-        return 1
-
-
-if __name__ == '__main__':
-    import sys
-    sys.exit(main(sys.argv))
-

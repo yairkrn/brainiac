@@ -2,6 +2,7 @@ import click
 
 from . import run_server
 from . import upload_thought
+from . import run_webserver
 
 
 @click.group()
@@ -28,6 +29,16 @@ def upload(address, user, thought):
     ip, port_str = address.split(':')
     address = (ip, int(port_str))
     upload_thought(address, user_id, thought)
+    print('done')
+
+
+@cli.command()
+@click.argument('address')
+@click.argument('data')
+def webserver(address, data):
+    ip, port_str = address.split(':')
+    address = (ip, int(port_str))
+    run_webserver(address, data)
     print('done')
 
 
