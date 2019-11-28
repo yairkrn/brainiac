@@ -10,14 +10,14 @@ import time
 
 import pytest
 
-from cli import CommandLineInterface
+from virtualbrain.cli import CommandLineInterface
 
 
 _SERVER_ADDRESS = '127.0.0.1', 5000
 _SERVER_BACKLOG = 1000
 _ROOT = pathlib.Path(__file__).absolute().parent.parent
-_SERVER_PATH = _ROOT / 'server.py'
-_CLIENT_PATH = _ROOT / 'client.py'
+_SERVER_PATH = 'virtualbrain'
+_CLIENT_PATH = 'virtualbrain'
 
 
 @pytest.fixture
@@ -110,14 +110,16 @@ def test_client():
         time.sleep(0.1)
         host, port = _SERVER_ADDRESS
         process = subprocess.Popen(
-            ['python', _CLIENT_PATH, f'{host}:{port}', '1', "I'm hungry"],
+            ['python', '-m', _CLIENT_PATH, f'{host}:{port}', '1', "I'm hungry"],
             stdout = subprocess.PIPE,
+            cwd = _ROOT
         )
         stdout, _ = process.communicate()
         assert b'usage' in stdout.lower()
         process = subprocess.Popen(
-            ['python', _CLIENT_PATH, 'upload', f'address={host}:{port}', f'user=1', f"thought=I'm hungry"],
+            ['python', '-m', _CLIENT_PATH, 'upload', f'address={host}:{port}', f'user=1', f"thought=I'm hungry"],
             stdout = subprocess.PIPE,
+            cwd = _ROOT
         )
         stdout, _ = process.communicate()
         assert b'done' in stdout.lower()
@@ -128,14 +130,16 @@ def test_client():
 def test_server():
     host, port = _SERVER_ADDRESS
     process = subprocess.Popen(
-        ['python', _SERVER_PATH, f'{host}:{port}', 'data/'],
+        ['python', '-m', _SERVER_PATH, f'{host}:{port}', 'data/'],
         stdout = subprocess.PIPE,
+        cwd = _ROOT
     )
     stdout, _ = process.communicate()
     assert b'usage' in stdout.lower()
     process = subprocess.Popen(
-        ['python', _SERVER_PATH, 'run', f'address={host}:{port}', 'data=data/'],
+        ['python', '-m', _SERVER_PATH, 'run', f'address={host}:{port}', 'data=data/'],
         stdout = subprocess.PIPE,
+        cwd = _ROOT
     )
     stdout = None
     def run_server():

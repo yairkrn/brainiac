@@ -5,8 +5,8 @@ import time
 import pytest
 import requests
 
-import web
-from website import Website
+from virtualbrain import web
+from virtualbrain.website import Website
 
 
 _ADDRESS = '127.0.0.1', 8000

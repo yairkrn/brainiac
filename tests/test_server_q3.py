@@ -12,7 +12,7 @@ import time
 
 import pytest
 
-import server
+from virtualbrain import server
 
 
 _SERVER_ADDRESS = '127.0.0.1', 5000
