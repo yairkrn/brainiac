@@ -1,12 +1,17 @@
+import click
+
 from . import run_server
 from . import upload_thought
-from .cli import CommandLineInterface
 
 
-cli = CommandLineInterface()
+@click.group()
+def cli():
+    pass
 
 
-@cli.command
+@cli.command()
+@click.argument('address')
+@click.argument('data')
 def run(address, data):
     ip, port_str = address.split(':')
     address = (ip, int(port_str))
@@ -14,7 +19,10 @@ def run(address, data):
     print('done')
 
 
-@cli.command
+@cli.command()
+@click.argument('address')
+@click.argument('user')
+@click.argument('thought')
 def upload(address, user, thought):
     user_id = int(user)
     ip, port_str = address.split(':')
@@ -24,4 +32,4 @@ def upload(address, user, thought):
 
 
 if __name__ == '__main__':
-    cli.main()
+    cli()

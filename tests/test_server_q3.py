@@ -16,7 +16,8 @@ from virtualbrain import server
 
 
 _SERVER_ADDRESS = '127.0.0.1', 5000
-_SERVER_PATH = pathlib.Path(__file__).absolute().parent.parent / 'server.py'
+_ROOT = pathlib.Path(__file__).absolute().parent.parent
+_SERVER_PATH = 'virtualbrain'
 
 _HEADER_FORMAT = 'LLI'
 
@@ -95,18 +96,17 @@ def test_race_condition(data_dir):
         assert thoughts == {_THOUGHT_1, _THOUGHT_2}
 
 
-@pytest.mark.xfail
 def test_cli(tmp_path):
     host, port = _SERVER_ADDRESS
     process = subprocess.Popen(
-        ['python', _SERVER_PATH, f'{host}:{port}', str(tmp_path)],
+        ['python', '-m', _SERVER_PATH, 'run', f'{host}:{port}', str(tmp_path)],
         stdout = subprocess.PIPE,
     )
     def run_server():
         process.communicate()
     thread = threading.Thread(target=run_server)
     thread.start()
-    time.sleep(0.1)
+    time.sleep(0.5)
     _upload_thought(_USER_1, _TIMESTAMP_1, _THOUGHT_1)
     _upload_thought(_USER_2, _TIMESTAMP_2, _THOUGHT_2)
     process.send_signal(signal.SIGINT)

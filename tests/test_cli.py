@@ -10,84 +10,12 @@ import time
 
 import pytest
 
-from virtualbrain.cli import CommandLineInterface
-
 
 _SERVER_ADDRESS = '127.0.0.1', 5000
 _SERVER_BACKLOG = 1000
 _ROOT = pathlib.Path(__file__).absolute().parent.parent
 _SERVER_PATH = 'virtualbrain'
 _CLIENT_PATH = 'virtualbrain'
-
-
-@pytest.fixture
-def cli():
-    cli = CommandLineInterface()
-    @cli.command
-    def inc(x):
-        print(int(x) + 1)
-    @cli.command
-    def add(x, y):
-        print(int(x) + int(y))
-    return cli
-
-
-def test_inc(cli, capsys):
-    with _argv('inc', 'x=1') as command:
-        cli.main()
-    out, err = capsys.readouterr()
-    assert out == '2\n'
-    assert command.exit_code == 0
-    with _argv('inc', 'x=2') as command:
-        cli.main()
-    out, err = capsys.readouterr()
-    assert out == '3\n'
-    assert command.exit_code == 0
-
-
-def test_add(cli, capsys):
-    with _argv('add', 'x=1', 'y=2') as command:
-        cli.main()
-    out, err = capsys.readouterr()
-    assert out == '3\n'
-    assert command.exit_code == 0
-    with _argv('add', 'x=2', 'y=3') as command:
-        cli.main()
-    out, err = capsys.readouterr()
-    assert out == '5\n'
-    assert command.exit_code == 0
-
-
-def test_no_command(cli, capsys):
-    with _argv() as command:
-        cli.main()
-    out, err = capsys.readouterr()
-    assert 'usage' in out.lower()
-    assert command.exit_code != 0
-
-
-def test_invalid_command(cli, capsys):
-    with _argv('foo') as command:
-        cli.main()
-    out, err = capsys.readouterr()
-    assert 'usage' in out.lower()
-    assert command.exit_code != 0
-
-
-def test_invalid_argument_format(cli, capsys):
-    with _argv('inc', '1') as command:
-        cli.main()
-    out, err = capsys.readouterr()
-    assert 'usage' in out.lower()
-    assert command.exit_code != 0
-
-
-def test_invalid_arguments(cli, capsys):
-    with _argv('inc', 'y=1') as command:
-        cli.main()
-        out, err = capsys.readouterr()
-        assert 'usage' in out.lower()
-        assert command.exit_code != 0
 
 
 def test_client():
@@ -107,22 +35,22 @@ def test_client():
     server = multiprocessing.Process(target=run_server)
     server.start()
     try:
-        time.sleep(0.1)
+        time.sleep(0.5)
         host, port = _SERVER_ADDRESS
         process = subprocess.Popen(
-            ['python', '-m', _CLIENT_PATH, f'{host}:{port}', '1', "I'm hungry"],
-            stdout = subprocess.PIPE,
-            cwd = _ROOT
-        )
-        stdout, _ = process.communicate()
-        assert b'usage' in stdout.lower()
-        process = subprocess.Popen(
-            ['python', '-m', _CLIENT_PATH, 'upload', f'address={host}:{port}', f'user=1', f"thought=I'm hungry"],
+            ['python', '-m', _CLIENT_PATH, 'upload', f'{host}:{port}', '1', "I'm hungry"],
             stdout = subprocess.PIPE,
             cwd = _ROOT
         )
         stdout, _ = process.communicate()
         assert b'done' in stdout.lower()
+        process = subprocess.Popen(
+            ['python', '-m', _CLIENT_PATH, 'unknown_command'],
+            stderr = subprocess.PIPE,
+            cwd = _ROOT
+        )
+        _, stderr = process.communicate()
+        assert b'usage' in stderr.lower()
     finally:
         server.terminate()
 
@@ -130,14 +58,7 @@ def test_client():
 def test_server():
     host, port = _SERVER_ADDRESS
     process = subprocess.Popen(
-        ['python', '-m', _SERVER_PATH, f'{host}:{port}', 'data/'],
-        stdout = subprocess.PIPE,
-        cwd = _ROOT
-    )
-    stdout, _ = process.communicate()
-    assert b'usage' in stdout.lower()
-    process = subprocess.Popen(
-        ['python', '-m', _SERVER_PATH, 'run', f'address={host}:{port}', 'data=data/'],
+        ['python', '-m', _SERVER_PATH, 'run', f'{host}:{port}', 'data/'],
         stdout = subprocess.PIPE,
         cwd = _ROOT
     )

@@ -14,7 +14,8 @@ from virtualbrain import client
 
 _SERVER_ADDRESS = '127.0.0.1', 5000
 _SERVER_BACKLOG = 1000
-_CLIENT_PATH = pathlib.Path(__file__).absolute().parent.parent / 'client.py'
+_ROOT = pathlib.Path(__file__).absolute().parent.parent
+_CLIENT_PATH = 'virtualbrain'
 
 _HEADER_FORMAT = 'LLI'
 _HEADER_SIZE = struct.calcsize(_HEADER_FORMAT)
@@ -75,12 +76,12 @@ def test_timestamp(get_message):
     _assert_now(timestamp)
 
 
-@pytest.mark.xfail
 def test_cli(get_message):
     host, port = _SERVER_ADDRESS
     process = subprocess.Popen(
-        ['python', _CLIENT_PATH, f'{host}:{port}', str(_USER_1), _THOUGHT_1],
+        ['python', '-m', _CLIENT_PATH, 'upload', f'{host}:{port}', str(_USER_1), _THOUGHT_1],
         stdout = subprocess.PIPE,
+        cwd=_ROOT
     )
     stdout, _ = process.communicate()
     assert b'done' in stdout.lower()
@@ -90,15 +91,15 @@ def test_cli(get_message):
     assert thought == _THOUGHT_1
 
 
-@pytest.mark.xfail
 def test_cli_error():
     host, port = _SERVER_ADDRESS
     process = subprocess.Popen(
-        ['python', _CLIENT_PATH, f'{host}:{port}', str(_USER_1), _THOUGHT_1],
-        stdout = subprocess.PIPE,
+        ['python', _CLIENT_PATH, '-m', f'{host}:{port}', str(_USER_1), _THOUGHT_1],
+        stderr = subprocess.PIPE,
+        cwd=_ROOT
     )
-    stdout, _ = process.communicate()
-    assert b'error' in stdout.lower()
+    _, stderr = process.communicate()
+    assert b'error' in stderr.lower()
 
 
 def _run_server(pipe):
