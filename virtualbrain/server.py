@@ -6,13 +6,11 @@ import threading
 import os
 import contextlib
 
-from .cli import CommandLineInterface
 from .thought import Thought
 from .thought import ThoughtHeader
 from .utils import Listener
 
 
-cli = CommandLineInterface()
 BACKLOG = 1000
 
 
@@ -67,14 +65,3 @@ def run_server(address, data_dir):
                 client_connection = listener.accept()
                 ClientHandler(client_connection, data_dir).start()
 
-
-@cli.command
-def run(address, data):
-    ip, port_str = address.split(':')
-    address = (ip, int(port_str))
-    run_server(address, data)
-    print('done')
-
-
-if __name__ == '__main__':
-    cli.main()
