@@ -4,8 +4,7 @@ import os
 import functools
 from datetime import datetime
 from pathlib import Path
-
-from .website import Website
+import flask
 
 
 INDEX_HTML = '''
@@ -78,24 +77,30 @@ def get_user_thoughts(user_id, data_dir):
 
 
 def run_webserver(address, data_dir):
-    website = Website()
+    website = flask.Flask(__name__)
 
     @website.route('/')
     def get_index_html():
         users_html = [USER_LINE_HTML.format(user_id=user_id) for user_id in get_user_ids(data_dir)]
-        return 200, INDEX_HTML.format(users_html=os.linesep.join(users_html))
+        return INDEX_HTML.format(users_html=os.linesep.join(users_html))
 
-
-    @website.route('/users/([0-9]+)')
-    def get_user_html(user_id):
+    @website.route('/users/<int:user_id_int>')
+    def get_user_html(user_id_int):
+        user_id = str(user_id_int)
+        if not is_valid_user_id(user_id, data_dir):
+            flask.abort(404)
         thoughts_html = []
         thoughts = get_user_thoughts(user_id, data_dir)
         for thought in thoughts:
             thought_time, thought_bytes = thought
             thought_time_str = thought_time.strftime(TIME_FORMAT_HTML)
             thoughts_html.append(THOUGHT_HTML.format(thought_time=thought_time_str, thought_str=thought_bytes.decode()))
-        return 200, USER_HTML.format(user_id=user_id, thoughts_html=os.linesep.join(thoughts_html))
+        return USER_HTML.format(user_id=user_id, thoughts_html=os.linesep.join(thoughts_html))
 
+    @website.route('/<path:dummy>')
+    def page_not_found(dummy):
+        flask.abort(404)
 
-    website.run(address)
+    host, port = address
+    website.run(host, port)
 
