@@ -6,4 +6,4 @@ install:
 script:
   - pytest --cov-report term --cov=virtualbrain
 after_success:
-  - codecov
+  - codecov --url https://codecov.io/gh/yairkrn/virtual-brain
