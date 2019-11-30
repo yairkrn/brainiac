@@ -61,3 +61,12 @@ def test_accept(listener):
             connection.close()
     finally:
         listener.stop()
+
+
+def test_context_manager(listener):
+    assert socket.socket().connect_ex((_HOST, _PORT)) != 0
+    with listener:
+        time.sleep(0.1)
+        assert socket.socket().connect_ex((_HOST, _PORT)) == 0
+    assert socket.socket().connect_ex((_HOST, _PORT)) != 0
+

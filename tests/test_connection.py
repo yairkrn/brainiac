@@ -85,3 +85,17 @@ def test_incomplete_data(server):
             connection.receive(2)
     finally:
         connection.close()
+
+
+def test_context_manager(server):
+    sock = socket.socket()
+    sock.connect(('127.0.0.1', _PORT))
+    connection = Connection(sock)
+    with connection:
+        assert not sock._closed
+    assert sock._closed
+
+
+def test_connect(server):
+    with  Connection.connect('127.0.0.1', _PORT) as connection:
+        server.accept()
