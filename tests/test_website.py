@@ -15,6 +15,8 @@ _DATA_DIR = _ROOT / 'data'
 
 
 def test_web():
+    _DATA_DIR.mkdir(parents=True, exist_ok=True)
+
     def run_webserver():
         web.run_webserver(_ADDRESS, _DATA_DIR)
     process = multiprocessing.Process(target=run_webserver)
