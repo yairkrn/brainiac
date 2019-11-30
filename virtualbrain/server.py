@@ -1,10 +1,6 @@
-import socket
-import struct
-import time
-import datetime
-import threading
-import os
 import contextlib
+import os
+import threading
 
 from .thought import Thought
 from .thought import ThoughtHeader
@@ -16,7 +12,7 @@ BACKLOG = 1000
 
 class ClientHandler(threading.Thread):
     FILE_EXT = '.txt'
-    TIME_FORMAT =  '%Y-%m-%d_%H-%M-%S'
+    TIME_FORMAT = '%Y-%m-%d_%H-%M-%S'
     lock = threading.Lock()
 
     def __init__(self, conn, data_dir):
@@ -26,7 +22,7 @@ class ClientHandler(threading.Thread):
 
     def _get_thought_path(self, user_id, timestamp):
         formatted_time = timestamp.strftime(self.TIME_FORMAT)
-        
+
         output_dir = os.path.join(self._data_dir, str(user_id))
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, formatted_time + self.FILE_EXT)
@@ -34,7 +30,8 @@ class ClientHandler(threading.Thread):
         return output_path
 
     def _handle_thought(self, thought_obj):
-        output_path = self._get_thought_path(thought_obj.user_id, thought_obj.timestamp)
+        output_path = self._get_thought_path(thought_obj.user_id,
+                                             thought_obj.timestamp)
 
         self.lock.acquire()
 
@@ -64,4 +61,3 @@ def run_server(address, data_dir):
             while True:
                 client_connection = listener.accept()
                 ClientHandler(client_connection, data_dir).start()
-

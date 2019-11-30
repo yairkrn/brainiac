@@ -14,17 +14,17 @@ class Listener:
 
         if reuseaddr:
             self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        
+
         self._socket.bind((host, port))
-        
+
     @property
     def host(self):
         return self._host
-        
+
     @property
     def port(self):
         return self._port
-    
+
     @property
     def backlog(self):
         return self._backlog
@@ -34,8 +34,12 @@ class Listener:
         return self._reuseaddr
 
     def __repr__(self):
-        return f'Listener(port={self._port}, host=\'{self._host}\', backlog={self._backlog}, reuseaddr={self._reuseaddr})'
-    
+        return f'Listener('                     \
+             + f'port={self._port}, '           \
+             + f'host=\'{self._host}\', '       \
+             + f'backlog={self._backlog}, '     \
+             + f'reuseaddr={self._reuseaddr})'
+
     def start(self):
         self._socket.listen(self._backlog)
 

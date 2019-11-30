@@ -18,9 +18,10 @@ class Connection:
         while len(data) < size:
             data_chunk = self._socket.recv(size - len(data))
             if data_chunk == b'':
-                raise RuntimeError('Connection aborted! %d / %d bytes received'.format(len(data), size))
+                err = f'Connection aborted! {len(data)}/{size} bytes received.'
+                raise RuntimeError(err)
             data += (data_chunk)
-        return data  
+        return data
 
     def close(self):
         self._socket.close()

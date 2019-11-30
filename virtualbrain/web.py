@@ -1,9 +1,8 @@
-import http.server
-import re
 import os
-import functools
-from datetime import datetime
-from pathlib import Path
+import re
+import datetime as dt
+import pathlib
+
 import flask
 
 
@@ -46,18 +45,22 @@ VALID_USER_RE = r'\d+'
 
 
 def is_valid_user_id(user_id, data_dir):
-    return re.match(VALID_USER_RE, user_id) and Path(data_dir, user_id).is_dir()
+    return re.match(VALID_USER_RE, user_id) \
+           and pathlib.Path(data_dir, user_id).is_dir()
 
 
 def get_user_ids(data_dir):
-    return sorted([user_dir.name for user_dir in Path(data_dir).iterdir() if is_valid_user_id(user_dir.name, data_dir)], key=int)
+    user_dirs = [user_dir.name for user_dir in pathlib.Path(data_dir).iterdir()
+                 if is_valid_user_id(user_dir.name, data_dir)]
+    return sorted(user_dirs, key=int)
 
 
 def get_thought_from_file(thought_file):
     if not thought_file.is_file():
         raise ValueError('Invalid thought: not a file.')
     try:
-        thought_time = datetime.strptime(thought_file.stem, TIME_FORMAT_FILE)
+        thought_time = dt.datetime.strptime(thought_file.stem,
+                                            TIME_FORMAT_FILE)
     except ValueError:
         raise ValueError('Invalid thought: invalid time format.')
     with open(thought_file, 'rb') as f:
@@ -66,14 +69,14 @@ def get_thought_from_file(thought_file):
 
 
 def get_user_thoughts(user_id, data_dir):
-    user_dir = Path(data_dir, user_id)
+    user_dir = pathlib.Path(data_dir, user_id)
     thoughts = []
-    for thought_file in Path(user_dir).iterdir():
+    for thought_file in pathlib.Path(user_dir).iterdir():
         try:
             thoughts.append(get_thought_from_file(thought_file))
         except ValueError as e:
-            print (e)
-    return sorted(thoughts, key = lambda thought: thought[0])  # sort by time
+            print(e)
+    return sorted(thoughts, key=lambda thought: thought[0])  # sort by time
 
 
 def run_webserver(address, data_dir):
@@ -81,7 +84,8 @@ def run_webserver(address, data_dir):
 
     @website.route('/')
     def get_index_html():
-        users_html = [USER_LINE_HTML.format(user_id=user_id) for user_id in get_user_ids(data_dir)]
+        users_html = [USER_LINE_HTML.format(user_id=user_id)
+                      for user_id in get_user_ids(data_dir)]
         return INDEX_HTML.format(users_html=os.linesep.join(users_html))
 
     @website.route('/users/<int:user_id_int>')
@@ -94,8 +98,11 @@ def run_webserver(address, data_dir):
         for thought in thoughts:
             thought_time, thought_bytes = thought
             thought_time_str = thought_time.strftime(TIME_FORMAT_HTML)
-            thoughts_html.append(THOUGHT_HTML.format(thought_time=thought_time_str, thought_str=thought_bytes.decode()))
-        return USER_HTML.format(user_id=user_id, thoughts_html=os.linesep.join(thoughts_html))
+            thoughts_html.append(
+                THOUGHT_HTML.format(thought_time=thought_time_str,
+                                    thought_str=thought_bytes.decode()))
+        return USER_HTML.format(user_id=user_id,
+                                thoughts_html=os.linesep.join(thoughts_html))
 
     @website.route('/<path:dummy>')
     def page_not_found(dummy):
@@ -103,4 +110,3 @@ def run_webserver(address, data_dir):
 
     host, port = address
     website.run(host, port)
-
