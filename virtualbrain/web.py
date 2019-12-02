@@ -80,6 +80,13 @@ def get_user_thoughts(user_id, data_dir):
 
 
 def run_webserver(address, data_dir):
+    """
+    Run a web server at specified address.
+
+    Args:
+        address ((str, int)): host/ip server address and port.
+        data_dir (str): a directory path in which clients' data is saved.
+    """
     website = flask.Flask(__name__)
 
     @website.route('/')

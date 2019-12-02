@@ -38,6 +38,19 @@ class ThoughtHeader:
 
 
 class Thought:
+
+    """
+    A binary message describing a user's thought
+
+    Format:
+    -------------------------------------------------------
+    uint64 user_id          unique user identifier
+    uint64 timestamp        time the thought was created
+    uint32 thought_size     size of thought in bytes
+    uint8  thought          thought content
+    * thought_size
+    """
+
     def __init__(self, user_id, timestamp, thought):
         self._header = ThoughtHeader(user_id, timestamp, len(thought))
         self._thought = thought

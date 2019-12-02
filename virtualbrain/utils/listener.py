@@ -4,6 +4,12 @@ from .connection import Connection
 
 
 class Listener:
+
+    """
+    Wrapper class for server listener.
+    Handles incoming connections, as Connection objects.
+    """
+
     def __init__(self, port, host='0.0.0.0', backlog=1000, reuseaddr=True):
         self._host = host
         self._port = port

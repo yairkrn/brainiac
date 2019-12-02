@@ -2,6 +2,12 @@ import socket
 
 
 class Connection:
+
+    """
+    Wrapper class for socket.
+    Sends and receives data over wrapped socket.
+    """
+
     def __init__(self, socket):
         self._socket = socket
 
@@ -14,6 +20,18 @@ class Connection:
         self._socket.sendall(data)
 
     def receive(self, size):
+        """
+        Receive bytes over socket, ensuring all bytes are received.
+
+        Args:
+            size (int): amount of bytes to receive.
+
+        Returns:
+            bytes: the bytes received over socket.
+
+        Raises:
+            RuntimeError: if not all bytes could be received.
+        """
         data = bytes()
         while len(data) < size:
             data_chunk = self._socket.recv(size - len(data))

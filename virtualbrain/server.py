@@ -56,6 +56,14 @@ class ClientHandler(threading.Thread):
 
 
 def run_server(address, data_dir):
+    """
+    Initiate a server, running at given address
+        and handling incoming connecitons.
+
+    Args:
+        address ((str, int)): the ip address and port to listen on.
+        data_dir (str): a directory path in which to save clients' data.
+    """
     with Listener(host=address[0], port=address[1]) as listener:
         with contextlib.suppress(KeyboardInterrupt):
             while True:
