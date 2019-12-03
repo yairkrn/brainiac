@@ -38,7 +38,7 @@ def test_client():
         time.sleep(0.5)
         host, port = _SERVER_ADDRESS
         process = subprocess.Popen(
-            ['python', '-m', _CLIENT_PATH, 'upload', f'{host}:{port}', '1', "I'm hungry"],
+            ['python', '-m', _CLIENT_PATH, 'upload-thought', '-a', f'{host}:{port}', '-u', '1', "I'm hungry"],
             stdout = subprocess.PIPE,
             cwd = _ROOT
         )
@@ -58,7 +58,7 @@ def test_client():
 def test_server():
     host, port = _SERVER_ADDRESS
     process = subprocess.Popen(
-        ['python', '-m', _SERVER_PATH, 'run', f'{host}:{port}', 'data/'],
+        ['python', '-m', _SERVER_PATH, 'run-server', '-a', f'{host}:{port}', 'data/'],
         stdout = subprocess.PIPE,
         cwd = _ROOT
     )

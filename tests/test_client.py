@@ -79,7 +79,7 @@ def test_timestamp(get_message):
 def test_cli(get_message):
     host, port = _SERVER_ADDRESS
     process = subprocess.Popen(
-        ['python', '-m', _CLIENT_PATH, 'upload', f'{host}:{port}', str(_USER_1), _THOUGHT_1],
+        ['python', '-m', _CLIENT_PATH, 'upload-thought', '-a', f'{host}:{port}', '-u', f'{str(_USER_1)}', _THOUGHT_1],
         stdout = subprocess.PIPE,
         cwd=_ROOT
     )

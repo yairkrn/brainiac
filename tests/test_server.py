@@ -99,7 +99,7 @@ def test_race_condition(data_dir):
 def test_cli(tmp_path):
     host, port = _SERVER_ADDRESS
     process = subprocess.Popen(
-        ['python', '-m', _SERVER_PATH, 'run', f'{host}:{port}', str(tmp_path)],
+        ['python', '-m', _SERVER_PATH, 'run-server', '-a', f'{host}:{port}', str(tmp_path)],
         stdout = subprocess.PIPE,
     )
     def run_server():

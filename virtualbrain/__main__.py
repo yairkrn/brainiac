@@ -1,8 +1,8 @@
 import click
 
-from . import run_server
-from . import upload_thought
-from . import run_webserver
+from . import run_server as _run_server
+from . import upload_thought as _upload_thought
+from . import run_webserver as _run_webserver
 
 
 @click.group()
@@ -11,34 +11,33 @@ def cli():
 
 
 @cli.command()
-@click.argument('address')
-@click.argument('data')
-def run(address, data):
-    ip, port_str = address.split(':')
-    address = (ip, int(port_str))
-    run_server(address, data)
-    print('done')
-
-
-@cli.command()
-@click.argument('address')
-@click.argument('user')
+@click.option('-a', '--address', required=True)
+@click.option('-u', '--user-id', type=int, required=True)
 @click.argument('thought')
-def upload(address, user, thought):
-    user_id = int(user)
+def upload_thought(address, user_id, thought):
     ip, port_str = address.split(':')
     address = (ip, int(port_str))
-    upload_thought(address, user_id, thought)
+    _upload_thought(address, user_id, thought)
     print('done')
 
 
 @cli.command()
-@click.argument('address')
+@click.option('-a', '--address', required=True)
 @click.argument('data')
-def webserver(address, data):
+def run_server(address, data):
     ip, port_str = address.split(':')
     address = (ip, int(port_str))
-    run_webserver(address, data)
+    _run_server(address, data)
+    print('done')
+
+
+@cli.command()
+@click.option('-a', '--address', required=True)
+@click.argument('data')
+def run_webserver(address, data):
+    ip, port_str = address.split(':')
+    address = (ip, int(port_str))
+    _run_webserver(address, data)
     print('done')
 
 
