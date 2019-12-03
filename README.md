@@ -60,7 +60,7 @@ The `virtualbrain` packages provides the following classes:
     ```
 
 
-The `virtualbrain` package also provides the following functions, which also server as cli commands:
+The `virtualbrain` package also provides the following functions, which also serve as cli commands:
 
 ```sh
 python -m virtualbrain --help
