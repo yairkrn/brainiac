@@ -10,9 +10,11 @@ def cli():
     pass
 
 
-@cli.command()
-@click.option('-a', '--address', required=True)
-@click.option('-u', '--user-id', type=int, required=True)
+@cli.command(help='Upload a thought to the thought server.')
+@click.option('-a', '--address', required=True,
+              help='The server\'s address, in format <ip>:<port>')
+@click.option('-u', '--user-id', type=int, required=True,
+              help='The user\' unique identifying number')
 @click.argument('thought')
 def upload_thought(address, user_id, thought):
     ip, port_str = address.split(':')
@@ -21,23 +23,25 @@ def upload_thought(address, user_id, thought):
     print('done')
 
 
-@cli.command()
-@click.option('-a', '--address', required=True)
-@click.argument('data')
-def run_server(address, data):
+@cli.command(help='Run the thought server, which accepts and stores thoughts.')
+@click.option('-a', '--address', required=True,
+              help='The server\'s address, in format <ip>:<port>')
+@click.argument('data-dir')
+def run_server(address, data_dir):
     ip, port_str = address.split(':')
     address = (ip, int(port_str))
-    _run_server(address, data)
+    _run_server(address, data_dir)
     print('done')
 
 
-@cli.command()
-@click.option('-a', '--address', required=True)
-@click.argument('data')
-def run_webserver(address, data):
+@cli.command(help='Run the web server, which keeps track of stored thoughts.')
+@click.option('-a', '--address', required=True,
+              help='The server\'s address, in format <ip>:<port>')
+@click.argument('data-dir')
+def run_webserver(address, data_dir):
     ip, port_str = address.split(':')
     address = (ip, int(port_str))
-    _run_webserver(address, data)
+    _run_webserver(address, data_dir)
     print('done')
 
 

@@ -75,12 +75,40 @@ Commands:
   upload-thought
 ```
 
-- `run-server`
+- `run_server(address, data_dir`
 	```sh
 	python -m virtualbrain run-server --help
-	Usage: __main__.py run-server [OPTIONS] DATA
+	Usage: __main__.py run-server [OPTIONS] DATA_DIR
+
+	  Run the thought server, which accepts and stores thoughts.
 
 	Options:
-	  -a, --address TEXT  [required]
+	  -a, --address TEXT  The server's address, in format <ip>:<port>  [required]
 	  --help              Show this message and exit.
+	```
+
+- `run_webserver(address, data_dir)`
+	```sh
+	python -m virtualbrain run-webserver --help
+	Usage: __main__.py run-webserver [OPTIONS] DATA_DIR
+
+	  Run the web server, which keeps track of stored thoughts.
+
+	Options:
+	  -a, --address TEXT  The server's address, in format <ip>:<port>  [required]
+	  --help              Show this message and exit.
+	```
+
+- `upload_thought(address, user_id)`
+	```sh
+	python -m virtualbrain upload-thought --help
+	Usage: __main__.py upload-thought [OPTIONS] THOUGHT
+
+	  Upload a thought to the thought server.
+
+	Options:
+	  -a, --address TEXT     The server's address, in format <ip>:<port>
+	                         [required]
+	  -u, --user-id INTEGER  The user' unique identifying number  [required]
+	  --help                 Show this message and exit.
 	```
