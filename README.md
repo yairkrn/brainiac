@@ -34,7 +34,7 @@ An example package. See [full documentation](https://virtual-brain.readthedocs.i
 
 ## Usage
 
-The `virtualbrain` packages provides the following classes:
+The `virtualbrain` package provides the following classes:
 
 - `Thought`
 
