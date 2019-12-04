@@ -14,7 +14,7 @@ def cli():
 @click.option('-a', '--address', required=True,
               help='The server\'s address, in format <ip>:<port>')
 @click.option('-u', '--user-id', type=int, required=True,
-              help='The user\' unique identifying number')
+              help='The user\'s unique identifying number')
 @click.argument('thought')
 def upload_thought(address, user_id, thought):
     ip, port_str = address.split(':')

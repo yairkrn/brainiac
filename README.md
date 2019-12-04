@@ -109,6 +109,6 @@ Commands:
 	Options:
 	  -a, --address TEXT     The server's address, in format <ip>:<port>
 	                         [required]
-	  -u, --user-id INTEGER  The user' unique identifying number  [required]
+	  -u, --user-id INTEGER  The user's unique identifying number  [required]
 	  --help                 Show this message and exit.
 	```
