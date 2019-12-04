@@ -3,7 +3,9 @@
 
 # Virtual Brain
 
-An example package. See [full documentation](https://virtual-brain.readthedocs.io/en/latest/).
+Final project for Advanced System Design Course.
+
+See [full documentation](https://virtual-brain.readthedocs.io/en/latest/).
 
 ## Installation
 
@@ -63,7 +65,7 @@ The `virtualbrain` package provides the following classes:
 The `virtualbrain` package also provides the following functions, which also serve as cli commands:
 
 ```sh
-python -m virtualbrain --help
+$ python -m virtualbrain --help
 Usage: __main__.py [OPTIONS] COMMAND [ARGS]...
 
 Options:
@@ -77,7 +79,7 @@ Commands:
 
 - `run_server(address, data_dir)`
 	```sh
-	python -m virtualbrain run-server --help
+	$ python -m virtualbrain run-server --help
 	Usage: __main__.py run-server [OPTIONS] DATA_DIR
 
 	  Run the thought server, which accepts and stores thoughts.
@@ -89,7 +91,7 @@ Commands:
 
 - `run_webserver(address, data_dir)`
 	```sh
-	python -m virtualbrain run-webserver --help
+	$ python -m virtualbrain run-webserver --help
 	Usage: __main__.py run-webserver [OPTIONS] DATA_DIR
 
 	  Run the web server, which keeps track of stored thoughts.
@@ -101,7 +103,7 @@ Commands:
 
 - `upload_thought(address, user_id)`
 	```sh
-	python -m virtualbrain upload-thought --help
+	$ python -m virtualbrain upload-thought --help
 	Usage: __main__.py upload-thought [OPTIONS] THOUGHT
 
 	  Upload a thought to the thought server.
