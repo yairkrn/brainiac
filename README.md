@@ -75,7 +75,7 @@ Commands:
   upload-thought
 ```
 
-- `run_server(address, data_dir`
+- `run_server(address, data_dir)`
 	```sh
 	python -m virtualbrain run-server --help
 	Usage: __main__.py run-server [OPTIONS] DATA_DIR
