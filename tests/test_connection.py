@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from virtualbrain.utils import Connection
+from brainiac.utils import Connection
 
 
 _PORT = 1234

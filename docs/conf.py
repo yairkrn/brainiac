@@ -20,7 +20,7 @@ master_doc = 'index'
 
 # -- Project information -----------------------------------------------------
 
-project = 'virtual-brain'
+project = 'Brainiac'
 copyright = '2019, Yair Karin'
 author = 'Yair Karin'
 

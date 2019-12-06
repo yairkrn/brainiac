@@ -6,7 +6,7 @@ import shutil
 import requests
 import time
 
-from virtualbrain import web
+from brainiac import web
 
 
 _ADDRESS = '127.0.0.1', 8000

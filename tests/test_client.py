@@ -9,13 +9,13 @@ import time
 
 import pytest
 
-from virtualbrain import client
+from brainiac import client
 
 
 _SERVER_ADDRESS = '127.0.0.1', 5000
 _SERVER_BACKLOG = 1000
 _ROOT = pathlib.Path(__file__).absolute().parent.parent
-_CLIENT_PATH = 'virtualbrain'
+_CLIENT_PATH = 'brainiac'
 
 _HEADER_FORMAT = 'LLI'
 _HEADER_SIZE = struct.calcsize(_HEADER_FORMAT)

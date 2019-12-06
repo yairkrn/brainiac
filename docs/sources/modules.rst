@@ -1,7 +1,7 @@
-virtualbrain
-============
+brainiac
+========
 
 .. toctree::
    :maxdepth: 4
 
-   virtualbrain
+   brainiac

@@ -3,7 +3,7 @@ import struct
 
 import pytest
 
-from virtualbrain import Thought
+from brainiac import Thought
 
 
 user_id = 1

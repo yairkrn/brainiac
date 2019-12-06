@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from virtualbrain.utils import Listener
+from brainiac.utils import Listener
 
 
 _PORT = 1234

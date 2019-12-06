@@ -1,9 +1,9 @@
-.. virtual-brain documentation master file, created by
+.. brainiac documentation master file, created by
    sphinx-quickstart on Mon Dec  2 21:38:43 2019.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to virtual-brain's documentation!
+Welcome to Brainiac's documentation!
 =========================================
 
 .. toctree::

@@ -12,12 +12,12 @@ import time
 
 import pytest
 
-from virtualbrain import server
+from brainiac import server
 
 
 _SERVER_ADDRESS = '127.0.0.1', 5000
 _ROOT = pathlib.Path(__file__).absolute().parent.parent
-_SERVER_PATH = 'virtualbrain'
+_SERVER_PATH = 'brainiac'
 
 _HEADER_FORMAT = 'LLI'
 

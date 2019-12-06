@@ -1,20 +1,20 @@
-![build status](https://travis-ci.org/yairkrn/virtual-brain.svg?branch=master)
-[![codecov](https://codecov.io/gh/yairkrn/virtual-brain/branch/master/graph/badge.svg)](https://codecov.io/gh/yairkrn/virtual-brain)
+![build status](https://travis-ci.org/yairkrn/brainiac.svg?branch=master)
+[![codecov](https://codecov.io/gh/yairkrn/brainiac/branch/master/graph/badge.svg)](https://codecov.io/gh/yairkrn/brainiac)
 
-# Virtual Brain
+# Brainiac
 
 Final project for Advanced System Design Course.
 
-See [full documentation](https://virtual-brain.readthedocs.io/en/latest/).
+See [full documentation](https://brainiac.readthedocs.io/en/latest/).
 
 ## Installation
 
 1. Clone the repository and enter it:
 
     ```sh
-    $ git clone git@github.com:yairkrn/virtual-brain.git
+    $ git clone git@github.com:yairkrn/brainiac.git
     ...
-    $ cd virtual-brain/
+    $ cd brainiac/
     ```
 
 2. Run the installation script and activate the virtual environment:
@@ -23,7 +23,7 @@ See [full documentation](https://virtual-brain.readthedocs.io/en/latest/).
     $ ./scripts/install.sh
     ...
     $ source .env/bin/activate
-    [virtual-brain] $ # you're good to go!
+    [brainiac] $ # you're good to go!
     ```
 
 3. To check that everything is working as expected, run the tests:
@@ -36,7 +36,7 @@ See [full documentation](https://virtual-brain.readthedocs.io/en/latest/).
 
 ## Usage
 
-The `virtualbrain` package provides the following classes:
+The `brainiac` package provides the following classes:
 
 - `Thought`
 
@@ -50,7 +50,7 @@ The `virtualbrain` package provides the following classes:
     Example:
     ```pycon
 	>>> import datetime as dt
-	>>> from virtualbrain import Thought
+	>>> from brainiac import Thought
 	>>> t = Thought(user_id=1337, timestamp=dt.datetime(1998, 12, 7), thought='What a nice day...')
 	>>> t
 	Thought(user_id=1337, timestamp=datetime.datetime(1998, 12, 7, 0, 0), thought="What a nice day...")
@@ -62,10 +62,10 @@ The `virtualbrain` package provides the following classes:
     ```
 
 
-The `virtualbrain` package also provides the following functions, which also serve as cli commands:
+The `brainiac` package also provides the following functions, which also serve as cli commands:
 
 ```sh
-$ python -m virtualbrain --help
+$ python -m brainiac --help
 Usage: __main__.py [OPTIONS] COMMAND [ARGS]...
 
 Options:
@@ -79,7 +79,7 @@ Commands:
 
 - `run_server(address, data_dir)`
 	```sh
-	$ python -m virtualbrain run-server --help
+	$ python -m brainiac run-server --help
 	Usage: __main__.py run-server [OPTIONS] DATA_DIR
 
 	  Run the thought server, which accepts and stores thoughts.
@@ -91,7 +91,7 @@ Commands:
 
 - `run_webserver(address, data_dir)`
 	```sh
-	$ python -m virtualbrain run-webserver --help
+	$ python -m brainiac run-webserver --help
 	Usage: __main__.py run-webserver [OPTIONS] DATA_DIR
 
 	  Run the web server, which keeps track of stored thoughts.
@@ -103,7 +103,7 @@ Commands:
 
 - `upload_thought(address, user_id)`
 	```sh
-	$ python -m virtualbrain upload-thought --help
+	$ python -m brainiac upload-thought --help
 	Usage: __main__.py upload-thought [OPTIONS] THOUGHT
 
 	  Upload a thought to the thought server.
