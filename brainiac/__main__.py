@@ -1,8 +1,9 @@
 import click
 
+from . import Reader
 from . import run_server as _run_server
-from . import upload_thought as _upload_thought
 from . import run_webserver as _run_webserver
+from . import upload_thought as _upload_thought
 
 
 @click.group()
@@ -42,6 +43,23 @@ def run_webserver(address, data_dir):
     ip, port_str = address.split(':')
     address = (ip, int(port_str))
     _run_webserver(address, data_dir)
+    print('done')
+
+
+@cli.command(help='Print sample of user information and cognition snapshots.')
+@click.option('-n', '--sample-number', required=False, default=3, type=int,
+              help='Number of sample to print.')
+@click.argument('sample-file')
+def read(sample_file, sample_number):
+    reader = Reader(sample_file)
+    print(reader.user_info)
+
+    for snapshot in reader:
+        print(snapshot)
+        sample_number -= 1
+        if sample_number <= 0:
+            break
+
     print('done')
 
 
