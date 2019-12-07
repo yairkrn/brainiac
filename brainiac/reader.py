@@ -31,7 +31,32 @@ class DictInitializer:
             **kwargs: a dictionary of named arguments.
         """
         for k, v in kwargs.items():
-            self.__dict__[k] = v
+            # Ignore private members.
+            if not k.startswith('_'):
+                self.__dict__[k] = v
+
+
+class Gender:
+    _TO_STRING = {
+        'm': 'male',
+        'f': 'female',
+        'o': 'other'
+    }
+
+    def __init__(self, c):
+        self._c = c
+        # TODO: check if does not exist.
+        self._s = self._TO_STRING[c]
+
+    def __str__(self):
+        return self._s
+
+
+GenderParser = cs.ExprAdapter(
+        cs.Byte,
+        lambda obj, ctx: Gender(chr(obj)),
+        None
+    )
 
 
 class UserInformation(DictInitializer):
@@ -46,8 +71,7 @@ UserInformationParser = cs.ExprAdapter(
         'user_id' / cs.Int64ul,
         'username' / cs.PascalString(cs.Int32ul, "ascii"),
         'birthday' / DateAdapter(cs.Int32ul),
-        'gender' / cs.ExprAdapter(cs.Byte, lambda obj, ctx: chr(obj),
-                                  lambda obj, ctx: ord(obj))),
+        'gender' / GenderParser),
 
     # Lambda describing how to convert above struct to UserInformation:
     lambda obj, ctx: UserInformation(**obj),
@@ -89,6 +113,50 @@ DepthImageParser = cs.ExprAdapter(
 )
 
 
+class Translation(DictInitializer):
+    def __str__(self):
+        return repr((self.x, self.y, self.z))
+
+
+TranslationParser = cs.ExprAdapter(
+    cs.Struct('x' / cs.Float64l,
+              'y' / cs.Float64l,
+              'z' / cs.Float64l),
+    lambda obj, ctx: Translation(**obj),
+    None
+)
+
+
+class Rotation(DictInitializer):
+    def __str__(self):
+        return repr((self.x, self.y, self.z, self.w))
+
+
+RotationParser = cs.ExprAdapter(
+    cs.Struct('x' / cs.Float64l,
+              'y' / cs.Float64l,
+              'z' / cs.Float64l,
+              'w' / cs.Float64l),
+    lambda obj, ctx: Rotation(**obj),
+    None
+)
+
+
+class Feelings(DictInitializer):
+    pass
+
+
+FeelingsParser = cs.ExprAdapter(
+    cs.Struct(
+        'hunger' / cs.Float32l,
+        'thirst' / cs.Float32l,
+        'exhaustion' / cs.Float32l,
+        'happiness' / cs.Float32l),
+    lambda obj, ctx: Feelings(**obj),
+    None
+)
+
+
 class Snapshot(DictInitializer):
     def __str__(self):
         return f'Snapshot from {self.timestamp} on {self.translation} / ' + \
@@ -102,22 +170,11 @@ SnapshotStructParser = cs.ExprAdapter(
     # Struct describing how to parse Snapshot:
     cs.Struct(
         'timestamp' / DatetimeMillisecondsAdapter(cs.Int64ul),
-        'translation' / cs.Struct(
-                'x' / cs.Float64l,
-                'y' / cs.Float64l,
-                'z' / cs.Float64l),
-        'rotation' / cs.Struct(
-                'x' / cs.Float64l,
-                'y' / cs.Float64l,
-                'z' / cs.Float64l,
-                'w' / cs.Float64l),
+        'translation' / TranslationParser,
+        'rotation' / RotationParser,
         'color_image' / ColorImageParser,
         'depth_image' / DepthImageParser,
-        'feelings' / cs.Struct(
-                'hunger' / cs.Float32l,
-                'thirst' / cs.Float32l,
-                'exhaustion' / cs.Float32l,
-                'happiness' / cs.Float32l)),
+        'feelings' / FeelingsParser),
 
     # Lambda describing how to convert above struct to Snapshot:
     lambda obj, ctx: Snapshot(**obj),
