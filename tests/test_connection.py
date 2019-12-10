@@ -1,4 +1,5 @@
 import socket
+import struct
 import time
 
 import pytest
@@ -58,6 +59,24 @@ def test_send(server):
     assert b''.join(chunks) == _DATA
 
 
+def test_send_message(server):
+    sock = socket.socket()
+    sock.connect(('127.0.0.1', _PORT))
+    connection = Connection(sock)
+    try:
+        client, _ = server.accept()
+        connection.send_message(_DATA)
+    finally:
+        connection.close()
+    chunks = []
+    while True:
+        chunk = client.recv(4096)
+        if not chunk:
+            break
+        chunks.append(chunk)
+    assert b''.join(chunks) == struct.pack('<I', len(_DATA)) + _DATA
+
+
 def test_receive(server):
     sock = socket.socket()
     sock.connect(('127.0.0.1', _PORT))
@@ -69,6 +88,19 @@ def test_receive(server):
         assert first == _DATA[:1]
         rest = connection.receive(len(_DATA) - 1)
         assert rest == _DATA[1:]
+    finally:
+        connection.close()
+
+
+def test_receive_message(server):
+    sock = socket.socket()
+    sock.connect(('127.0.0.1', _PORT))
+    connection = Connection(sock)
+    try:
+        client, _ = server.accept()
+        client.sendall(struct.pack('<I', len(_DATA)) + _DATA)
+        message = connection.receive_message()
+        assert message == _DATA
     finally:
         connection.close()
 
