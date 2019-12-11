@@ -4,6 +4,27 @@ import os
 import construct as cs
 
 
+def struct(cs_struct):
+    def wrapper(cls):
+        class Adapter(cs.Adapter):
+            def _decode(self, obj, context, path):
+                values = {}
+                for subcon in cs_struct.subcons:
+                    key = subcon.name
+                    if not key.startswith('_'):
+                        values[key] = obj[key]
+                return cls(**values)
+
+            def _encode(self, obj, context, path):
+                return cs_struct.build(obj.__dict__)
+
+            def __call__(self, *args, **kwargs):
+                print(args, kwargs)
+                return cls(*args, **kwargs)
+        return Adapter(cs_struct)
+    return wrapper
+
+
 class DateAdapter(cs.Adapter):
     def _decode(self, obj, context, path):
         return dt.datetime.fromtimestamp(obj)
@@ -22,142 +43,122 @@ class DatetimeMillisecondsAdapter(cs.Adapter):
         return obj.timestamp() * self._MILLISECONDS_IN_SECOND
 
 
-class DictInitializer:
-    def __init__(self, **kwargs):
-        """
-        Initializes member for every named argument.
-
-        Args:
-            **kwargs: a dictionary of named arguments.
-        """
-        for k, v in kwargs.items():
-            # Ignore private members.
-            if not k.startswith('_'):
-                self.__dict__[k] = v
-
-
+@struct(cs.Struct('gender' / cs.Byte))
 class Gender:
     _TO_STRING = {
-        'm': 'male',
-        'f': 'female',
-        'o': 'other'
+        ord('m'): 'male',
+        ord('f'): 'female',
+        ord('o'): 'other'
     }
 
-    def __init__(self, c):
-        self._c = c
+    def __init__(self, gender):
+        self.gender = gender
         # TODO: check if does not exist.
-        self._s = self._TO_STRING[c]
+        self._gender_str = self._TO_STRING[gender]
 
     def __str__(self):
-        return self._s
+        return self._gender_str
 
 
-GenderParser = cs.ExprAdapter(
-        cs.Byte,
-        lambda obj, ctx: Gender(chr(obj)),
-        None
-    )
+@struct(cs.Struct(
+    'user_id' / cs.Int64ul,
+    'username' / cs.PascalString(cs.Int32ul, "ascii"),
+    'birthday' / DateAdapter(cs.Int32ul),
+    'gender' / Gender))
+class UserInformation:
+    def __init__(self, user_id, username, birthday, gender):
+        self.user_id = user_id
+        self.username = username
+        self.birthday = birthday
+        self.gender = gender
 
-
-class UserInformation(DictInitializer):
     def __str__(self):
         return f'user {self.user_id}: {self.username}, born {self.birthday}' +\
                f' ({self.gender})'
 
 
-UserInformationParser = cs.ExprAdapter(
-    # Struct describing how to parse UserInformation:
-    cs.Struct(
-        'user_id' / cs.Int64ul,
-        'username' / cs.PascalString(cs.Int32ul, "ascii"),
-        'birthday' / DateAdapter(cs.Int32ul),
-        'gender' / GenderParser),
-
-    # Lambda describing how to convert above struct to UserInformation:
-    lambda obj, ctx: UserInformation(**obj),
-    None
-)
+@struct(cs.Struct(
+    'h' / cs.Int32ul,
+    'w' / cs.Int32ul,
+    'colors' / cs.Array(lambda ctx: ctx.w * ctx.h * 3, cs.Byte)))
+class ColorImage:
+    def __init__(self, h, w, colors):
+        self.h = h
+        self.w = w
+        self.colors = colors
 
 
-class ColorImage(DictInitializer):
-    pass
+@struct(cs.Struct(
+    'h' / cs.Int32ul,
+    'w' / cs.Int32ul,
+    'depths' / cs.Array(lambda ctx: ctx.w * ctx.h, cs.Float32l)))
+class DepthImage:
+    def __init__(self, h, w, depths):
+        self.h = h
+        self.w = w
+        self.depths = depths
 
 
-ColorImageParser = cs.ExprAdapter(
-    # Struct describing how to parse ColorImage:
-    cs.Struct(
-        'h' / cs.Int32ul,
-        'w' / cs.Int32ul,
-        'colors' / cs.Array(lambda ctx: ctx.w * ctx.h * 3, cs.Byte)),
+@struct(cs.Struct(
+    'x' / cs.Float64l,
+    'y' / cs.Float64l,
+    'z' / cs.Float64l))
+class Translation:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
 
-    # Lambda describing how to convert above struct to ColorImage:
-    lambda obj, ctx: ColorImage(**obj),
-    None
-)
-
-
-class DepthImage(DictInitializer):
-    pass
-
-
-DepthImageParser = cs.ExprAdapter(
-    # Struct describing how to parse ColorImage:
-    cs.Struct(
-        'h' / cs.Int32ul,
-        'w' / cs.Int32ul,
-        'depths' / cs.Array(lambda ctx: ctx.w * ctx.h, cs.Float32l)),
-
-    # Lambda describing how to convert above struct to DepthImage:
-    lambda obj, ctx: DepthImage(**obj),
-    None
-)
-
-
-class Translation(DictInitializer):
     def __str__(self):
         return repr((self.x, self.y, self.z))
 
 
-TranslationParser = cs.ExprAdapter(
-    cs.Struct('x' / cs.Float64l,
-              'y' / cs.Float64l,
-              'z' / cs.Float64l),
-    lambda obj, ctx: Translation(**obj),
-    None
-)
+@struct(cs.Struct(
+    'x' / cs.Float64l,
+    'y' / cs.Float64l,
+    'z' / cs.Float64l,
+    'w' / cs.Float64l))
+class Rotation:
+    def __init__(self, x, y, z, w):
+        self.x = x
+        self.y = y
+        self.z = z
+        self.w = w
 
-
-class Rotation(DictInitializer):
     def __str__(self):
         return repr((self.x, self.y, self.z, self.w))
 
 
-RotationParser = cs.ExprAdapter(
-    cs.Struct('x' / cs.Float64l,
-              'y' / cs.Float64l,
-              'z' / cs.Float64l,
-              'w' / cs.Float64l),
-    lambda obj, ctx: Rotation(**obj),
-    None
-)
+@struct(cs.Struct(
+    'hunger' / cs.Float32l,
+    'thirst' / cs.Float32l,
+    'exhaustion' / cs.Float32l,
+    'happiness' / cs.Float32l))
+class Feelings:
+    def __init__(self, hunger, thirst, exhaustion, happiness):
+        self.hunger = hunger
+        self.thirst = thirst
+        self.exhaustion = exhaustion
+        self.happiness = happiness
 
 
-class Feelings(DictInitializer):
-    pass
+@struct(cs.Struct(
+    'timestamp' / DatetimeMillisecondsAdapter(cs.Int64ul),
+    'translation' / Translation,
+    'rotation' / Rotation,
+    'color_image' / ColorImage,
+    'depth_image' / DepthImage,
+    'feelings' / Feelings))
+class Snapshot:
+    def __init__(self, timestamp, translation, rotation, color_image,
+                 depth_image, feelings):
+        self.timestamp = timestamp
+        self.translation = translation
+        self.rotation = rotation
+        self.color_image = color_image
+        self.depth_image = depth_image
+        self.feelings = feelings
 
-
-FeelingsParser = cs.ExprAdapter(
-    cs.Struct(
-        'hunger' / cs.Float32l,
-        'thirst' / cs.Float32l,
-        'exhaustion' / cs.Float32l,
-        'happiness' / cs.Float32l),
-    lambda obj, ctx: Feelings(**obj),
-    None
-)
-
-
-class Snapshot(DictInitializer):
     def __str__(self):
         return f'Snapshot from {self.timestamp} on {self.translation} / ' + \
                f'{self.rotation} with a {self.color_image.w}x' + \
@@ -166,35 +167,16 @@ class Snapshot(DictInitializer):
                f'image.'
 
 
-SnapshotStructParser = cs.ExprAdapter(
-    # Struct describing how to parse Snapshot:
-    cs.Struct(
-        'timestamp' / DatetimeMillisecondsAdapter(cs.Int64ul),
-        'translation' / TranslationParser,
-        'rotation' / RotationParser,
-        'color_image' / ColorImageParser,
-        'depth_image' / DepthImageParser,
-        'feelings' / FeelingsParser),
-
-    # Lambda describing how to convert above struct to Snapshot:
-    lambda obj, ctx: Snapshot(**obj),
-    None
-)
-
-
 class Reader:
     def __init__(self, path):
         self._sample_stream = open(path, 'rb')
-        self.user_info = UserInformationParser.parse_stream(
+        self.userinfo = UserInformation.parse_stream(
                             self._sample_stream)
         self._file_size = os.fstat(self._sample_stream.fileno()).st_size
-
-    def __getattr__(self, k):
-        return getattr(self._user_info, k)
 
     def _is_eof(self):
         return self._sample_stream.tell() == self._file_size
 
     def __iter__(self):
         while not self._is_eof():
-            yield SnapshotStructParser.parse_stream(self._sample_stream)
+            yield Snapshot.parse_stream(self._sample_stream)
