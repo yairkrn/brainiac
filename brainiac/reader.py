@@ -1,49 +1,13 @@
-import datetime as dt
 import os
 
 import construct as cs
 
-
-def struct(cs_struct):
-    def wrapper(cls):
-        class Adapter(cs.Adapter):
-            def _decode(self, obj, context, path):
-                values = {}
-                for subcon in cs_struct.subcons:
-                    key = subcon.name
-                    if not key.startswith('_'):
-                        values[key] = obj[key]
-                return cls(**values)
-
-            def _encode(self, obj, context, path):
-                return cs_struct.build(obj.__dict__)
-
-            def __call__(self, *args, **kwargs):
-                print(args, kwargs)
-                return cls(*args, **kwargs)
-        return Adapter(cs_struct)
-    return wrapper
+from .utils import serializable
+from .utils.serializable import ByteAdapter, DateAdapter, \
+                                DatetimeMillisecondsAdapter
 
 
-class DateAdapter(cs.Adapter):
-    def _decode(self, obj, context, path):
-        return dt.datetime.fromtimestamp(obj)
-
-    def _encode(self, obj, context, path):
-        return obj.timestamp()
-
-
-class DatetimeMillisecondsAdapter(cs.Adapter):
-    _MILLISECONDS_IN_SECOND = 1000
-
-    def _decode(self, obj, context, path):
-        return dt.datetime.fromtimestamp(obj / self._MILLISECONDS_IN_SECOND)
-
-    def _encode(self, obj, context, path):
-        return obj.timestamp() * self._MILLISECONDS_IN_SECOND
-
-
-@struct(cs.Struct('gender' / cs.Byte))
+@serializable(cs.Struct('gender' / cs.Byte))
 class Gender:
     _TO_STRING = {
         ord('m'): 'male',
@@ -60,11 +24,11 @@ class Gender:
         return self._gender_str
 
 
-@struct(cs.Struct(
+@serializable(cs.Struct(
     'user_id' / cs.Int64ul,
     'username' / cs.PascalString(cs.Int32ul, "ascii"),
     'birthday' / DateAdapter(cs.Int32ul),
-    'gender' / Gender))
+    'gender' / Gender.struct))
 class UserInformation:
     def __init__(self, user_id, username, birthday, gender):
         self.user_id = user_id
@@ -77,7 +41,7 @@ class UserInformation:
                f' ({self.gender})'
 
 
-@struct(cs.Struct(
+@serializable(cs.Struct(
     'h' / cs.Int32ul,
     'w' / cs.Int32ul,
     'colors' / cs.Array(lambda ctx: ctx.w * ctx.h * 3, cs.Byte)))
@@ -88,7 +52,7 @@ class ColorImage:
         self.colors = colors
 
 
-@struct(cs.Struct(
+@serializable(cs.Struct(
     'h' / cs.Int32ul,
     'w' / cs.Int32ul,
     'depths' / cs.Array(lambda ctx: ctx.w * ctx.h, cs.Float32l)))
@@ -99,7 +63,7 @@ class DepthImage:
         self.depths = depths
 
 
-@struct(cs.Struct(
+@serializable(cs.Struct(
     'x' / cs.Float64l,
     'y' / cs.Float64l,
     'z' / cs.Float64l))
@@ -113,7 +77,7 @@ class Translation:
         return repr((self.x, self.y, self.z))
 
 
-@struct(cs.Struct(
+@serializable(cs.Struct(
     'x' / cs.Float64l,
     'y' / cs.Float64l,
     'z' / cs.Float64l,
@@ -129,7 +93,7 @@ class Rotation:
         return repr((self.x, self.y, self.z, self.w))
 
 
-@struct(cs.Struct(
+@serializable(cs.Struct(
     'hunger' / cs.Float32l,
     'thirst' / cs.Float32l,
     'exhaustion' / cs.Float32l,
@@ -142,13 +106,13 @@ class Feelings:
         self.happiness = happiness
 
 
-@struct(cs.Struct(
+@serializable(cs.Struct(
     'timestamp' / DatetimeMillisecondsAdapter(cs.Int64ul),
-    'translation' / Translation,
-    'rotation' / Rotation,
-    'color_image' / ColorImage,
-    'depth_image' / DepthImage,
-    'feelings' / Feelings))
+    'translation' / Translation.struct,
+    'rotation' / Rotation.struct,
+    'color_image' / ColorImage.struct,
+    'depth_image' / DepthImage.struct,
+    'feelings' / Feelings.struct))
 class Snapshot:
     def __init__(self, timestamp, translation, rotation, color_image,
                  depth_image, feelings):
@@ -170,7 +134,7 @@ class Snapshot:
 class Reader:
     def __init__(self, path):
         self._sample_stream = open(path, 'rb')
-        self.userinfo = UserInformation.parse_stream(
+        self.userinfo = UserInformation.deserialize_stream(
                             self._sample_stream)
         self._file_size = os.fstat(self._sample_stream.fileno()).st_size
 
@@ -179,4 +143,4 @@ class Reader:
 
     def __iter__(self):
         while not self._is_eof():
-            yield Snapshot.parse_stream(self._sample_stream)
+            yield Snapshot.deserialize_stream(self._sample_stream)
