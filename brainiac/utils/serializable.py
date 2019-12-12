@@ -26,7 +26,7 @@ class DatetimeMillisecondsAdapter(cs.Adapter):
         return dt.datetime.fromtimestamp(obj / self._MILLISECONDS_IN_SECOND)
 
     def _encode(self, obj, context, path):
-        return obj.timestamp() * self._MILLISECONDS_IN_SECOND
+        return int(obj.timestamp() * self._MILLISECONDS_IN_SECOND)
 
 
 def serializable(cs_struct):

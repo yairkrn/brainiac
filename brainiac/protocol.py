@@ -38,7 +38,7 @@ class HelloMessage:
 @serializable(cs.Struct(
     'h' / cs.Int32ul,
     'w' / cs.Int32ul,
-    'colors' / cs.Array(lambda ctx: ctx.w * ctx.h * 3, cs.Byte)))
+    'colors' / cs.Array(lambda ctx: ctx.w * ctx.h, cs.Float32l)))
 class ColorImage:
     def __init__(self, h, w, colors):
         self.h = h
@@ -108,14 +108,69 @@ class Feelings:
     'depth_image' / DepthImage.struct,
     'feelings' / Feelings.struct))
 class SnapshotMessage:
-    def __init__(self, timestamp, translation, rotation, color_image,
-                 depth_image, feelings):
+    def __init__(self, timestamp, translation=None, rotation=None,
+                 color_image=None, depth_image=None, feelings=None):
         self.timestamp = timestamp
+        if translation is None:
+            translation = Translation(0, 0, 0)
+        if rotation is None:
+            rotation = Rotation(0, 0, 0, 0)
+        if color_image is None:
+            color_image = ColorImage(0, 0, [])
+        if depth_image is None:
+            depth_image = DepthImage(0, 0, [])
+        if feelings is None:
+            feelings = Feelings(0, 0, 0, 0)
+
         self.translation = translation
         self.rotation = rotation
         self.color_image = color_image
         self.depth_image = depth_image
         self.feelings = feelings
+
+    @classmethod
+    def from_sample(cls, sample, fields):
+        print(fields)
+        timestamp = sample.timestamp
+        translation = None
+        if 'translation' in fields:
+            translation = Translation(
+                sample.translation.x,
+                sample.translation.y,
+                sample.translation.z)
+        rotation = None
+        if 'rotation' in fields:
+            rotation = Rotation(
+                sample.rotation.x,
+                sample.rotation.y,
+                sample.rotation.z,
+                sample.rotation.w)
+        color_image = None
+        if 'color_image' in fields:
+            color_image = ColorImage(
+                sample.color_image.h,
+                sample.color_image.w,
+                sample.color_image.colors)
+        depth_image = None
+        if 'depth_image' in fields:
+            depth_image = DepthImage(
+                sample.depth_image.h,
+                sample.depth_image.w,
+                sample.depth_image.depth)
+        feelings = None
+        if 'feelings' in fields:
+            feelings = Feelings(
+                sample.feelings.hunger,
+                sample.feelings.thirst,
+                sample.feelings.exhaustion,
+                sample.feelings.happiness)
+        return cls(
+            timestamp,
+            translation,
+            rotation,
+            color_image,
+            depth_image,
+            feelings)
 
 
 @serializable(cs.Struct(
@@ -127,3 +182,4 @@ class ConfigMessage:
     def __init__(self, supported_fields_number, supported_fields):
         self.supported_fields_number = supported_fields_number
         self.supported_fields = supported_fields
+

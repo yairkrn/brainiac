@@ -7,12 +7,12 @@ from .utils.serializable import ByteAdapter, DateAdapter, \
                                 DatetimeMillisecondsAdapter
 
 
-@serializable(cs.Struct('gender' / cs.Byte))
+@serializable(cs.Struct('gender' / ByteAdapter(cs.Byte)))
 class Gender:
     _TO_STRING = {
-        ord('m'): 'male',
-        ord('f'): 'female',
-        ord('o'): 'other'
+        'm': 'male',
+        'f': 'female',
+        'o': 'other'
     }
 
     def __init__(self, gender):
