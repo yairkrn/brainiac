@@ -34,7 +34,6 @@ class ClientHandler(threading.Thread):
 
         # i.    Receive an Hello message
         hello = HelloMessage.deserialize(self._conn.receive_message())
-        print(hello)
 
         # ii.   Send back a Config message
         self._conn.send_message(ConfigMessage(

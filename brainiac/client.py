@@ -53,7 +53,6 @@ def run_client(address, sample_path, sample_num):
             config = ConfigMessage.deserialize(connection.receive_message())
 
             # ii.   Send a Snapshot message
-            print(sample)
             snapshot = SnapshotMessage.from_sample(
                 sample, config.supported_fields)
             connection.send_message(snapshot.serialize())

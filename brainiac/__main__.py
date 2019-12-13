@@ -8,21 +8,23 @@ from . import run_client as _run_client
 
 
 @click.group()
+def cli():
+    pass
+
+
+@cli.group(help='Client related utilities.')
 def client():
     pass
 
 
 @client.command(help='Upload a thought to the thought server.')
-@click.option('-a', '--address', required=True,
+@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1337),
               help='The server\'s address, in format <ip>:<port>')
 @click.option('-u', '--user-id', type=int, required=True,
               help='The user\'s unique identifying number')
 @click.argument('thought')
 def upload_thought(address, user_id, thought):
-    ip, port_str = address.split(':')
-    address = (ip, int(port_str))
     _upload_thought(address, user_id, thought)
-    print('done')
 
 
 @client.command(help='Print sample of user information and cognition snapshots.')
@@ -39,42 +41,37 @@ def read(sample_file, sample_number):
         if sample_number <= 0:
             break
 
-    print('done')
-
 
 @client.command(help='Print sample of user information and cognition snapshots.')
-@click.option('-a', '--address', required=True,
+@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1337),
               help='The server\'s address, in format <ip>:<port>')
 @click.option('-n', '--sample-number', required=False, default=3, type=int,
               help='Number of sample to print.')
 @click.argument('sample-file')
-def run_client(address, sample_file, sample_number):
-    ip, port_str = address.split(':')
-    address = (ip, int(port_str))
+def run(address, sample_file, sample_number):
     _run_client(address, sample_file, sample_number)
-    print('done')
 
 
-@client.command(help='Run the thought server, which accepts and stores thoughts.')
-@click.option('-a', '--address', required=True,
+@cli.group(help='Server related utilities.')
+def server():
+    pass
+
+
+@server.command(help='Run the thought server, which accepts and stores thoughts.')
+@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1337),
               help='The server\'s address, in format <ip>:<port>')
 @click.argument('data-dir')
-def run_server(address, data_dir):
-    ip, port_str = address.split(':')
-    address = (ip, int(port_str))
+def run(address, data_dir):
     _run_server(address, data_dir)
-    print('done')
 
 
-@client.command(help='Run the web server, which keeps track of stored thoughts.')
-@click.option('-a', '--address', required=True,
+@server.command(help='Run the web server, which keeps track of stored thoughts.')
+@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1337),
               help='The server\'s address, in format <ip>:<port>')
 @click.argument('data-dir')
-def run_webserver(address, data_dir):
-    ip, port_str = address.split(':')
-    address = (ip, int(port_str))
+def webserver(address, data_dir):
     _run_webserver(address, data_dir)
-    print('done')
+
 
 if __name__ == '__main__':
-    client()
+    cli()
