@@ -8,11 +8,11 @@ from . import run_client as _run_client
 
 
 @click.group()
-def cli():
+def client():
     pass
 
 
-@cli.command(help='Upload a thought to the thought server.')
+@client.command(help='Upload a thought to the thought server.')
 @click.option('-a', '--address', required=True,
               help='The server\'s address, in format <ip>:<port>')
 @click.option('-u', '--user-id', type=int, required=True,
@@ -25,29 +25,7 @@ def upload_thought(address, user_id, thought):
     print('done')
 
 
-@cli.command(help='Run the thought server, which accepts and stores thoughts.')
-@click.option('-a', '--address', required=True,
-              help='The server\'s address, in format <ip>:<port>')
-@click.argument('data-dir')
-def run_server(address, data_dir):
-    ip, port_str = address.split(':')
-    address = (ip, int(port_str))
-    _run_server(address, data_dir)
-    print('done')
-
-
-@cli.command(help='Run the web server, which keeps track of stored thoughts.')
-@click.option('-a', '--address', required=True,
-              help='The server\'s address, in format <ip>:<port>')
-@click.argument('data-dir')
-def run_webserver(address, data_dir):
-    ip, port_str = address.split(':')
-    address = (ip, int(port_str))
-    _run_webserver(address, data_dir)
-    print('done')
-
-
-@cli.command(help='Print sample of user information and cognition snapshots.')
+@client.command(help='Print sample of user information and cognition snapshots.')
 @click.option('-n', '--sample-number', required=False, default=3, type=int,
               help='Number of sample to print.')
 @click.argument('sample-file')
@@ -64,7 +42,7 @@ def read(sample_file, sample_number):
     print('done')
 
 
-@cli.command(help='Print sample of user information and cognition snapshots.')
+@client.command(help='Print sample of user information and cognition snapshots.')
 @click.option('-a', '--address', required=True,
               help='The server\'s address, in format <ip>:<port>')
 @click.option('-n', '--sample-number', required=False, default=3, type=int,
@@ -77,5 +55,26 @@ def run_client(address, sample_file, sample_number):
     print('done')
 
 
+@client.command(help='Run the thought server, which accepts and stores thoughts.')
+@click.option('-a', '--address', required=True,
+              help='The server\'s address, in format <ip>:<port>')
+@click.argument('data-dir')
+def run_server(address, data_dir):
+    ip, port_str = address.split(':')
+    address = (ip, int(port_str))
+    _run_server(address, data_dir)
+    print('done')
+
+
+@client.command(help='Run the web server, which keeps track of stored thoughts.')
+@click.option('-a', '--address', required=True,
+              help='The server\'s address, in format <ip>:<port>')
+@click.argument('data-dir')
+def run_webserver(address, data_dir):
+    ip, port_str = address.split(':')
+    address = (ip, int(port_str))
+    _run_webserver(address, data_dir)
+    print('done')
+
 if __name__ == '__main__':
-    cli()
+    client()

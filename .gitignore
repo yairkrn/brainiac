@@ -2,3 +2,5 @@
 .venv/
 data/
 docs/_*
+__pycache__
+.*

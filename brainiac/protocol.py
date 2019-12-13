@@ -38,12 +38,20 @@ class HelloMessage:
 @serializable(cs.Struct(
     'h' / cs.Int32ul,
     'w' / cs.Int32ul,
-    'colors' / cs.Array(lambda ctx: ctx.w * ctx.h, cs.Float32l)))
+    'colors' / cs.Array(lambda ctx: ctx.w * ctx.h * 3, cs.Byte)))
 class ColorImage:
     def __init__(self, h, w, colors):
         self.h = h
         self.w = w
         self.colors = colors
+
+    @property
+    def rgb_colors(self):
+        rgb_colors = []
+        for i in range(0, len(self.colors), 3):
+            b, g, r = self.colors[i:i+3]
+            rgb_colors.append((r, g, b))
+        return rgb_colors
 
 
 @serializable(cs.Struct(
@@ -130,7 +138,6 @@ class SnapshotMessage:
 
     @classmethod
     def from_sample(cls, sample, fields):
-        print(fields)
         timestamp = sample.timestamp
         translation = None
         if 'translation' in fields:

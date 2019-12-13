@@ -44,7 +44,6 @@ def serializable(cs_struct):
                 return obj.__dict__
 
             def __call__(self, *args, **kwargs):
-                print(args, kwargs)
                 return cls(*args, **kwargs)
         setattr(cls, 'struct', Adapter(cs_struct))
 

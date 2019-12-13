@@ -49,7 +49,11 @@ class ColorImage:
     def __init__(self, h, w, colors):
         self.h = h
         self.w = w
-        self.colors = colors
+        rgb_colors = []
+        for i in range(0, len(colors), 3):
+            b, g, r = colors[i:i+3]
+            rgb_colors.extend([r, g, b])
+        self.colors = rgb_colors
 
 
 @serializable(cs.Struct(

@@ -1,5 +1,7 @@
 import json
 
+from PIL import Image
+
 
 class Parser:
     def __init__(self):
@@ -36,3 +38,12 @@ def parse_translation(context, snapshot):
             y=snapshot.translation.y,
             z=snapshot.translation.z)
         json.dump(translation_dict, writer)
+
+
+@parser('color_image')
+def parse_translation(context, snapshot):
+    width = snapshot.color_image.w
+    height = snapshot.color_image.h
+    image = Image.new('RGB', (width, height))
+    image.putdata(snapshot.color_image.rgb_colors)
+    image.save(context.directory / 'color_image.png')

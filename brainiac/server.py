@@ -11,7 +11,7 @@ BACKLOG = 1000
 
 
 class ClientHandler(threading.Thread):
-    TIME_FORMAT = '%Y-%m-%d_%H-%M-%S'
+    TIME_FORMAT = '%Y-%m-%d_%H-%M-%S-%f'
     lock = threading.Lock()
 
     class Context:
