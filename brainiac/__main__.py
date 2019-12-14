@@ -34,12 +34,10 @@ def upload_thought(address, user_id, thought):
 def read(sample_file, sample_number):
     reader = Reader(sample_file)
     print(reader.user)
+    reader_iter = iter(reader)
 
-    for snapshot in reader:
-        print(snapshot)
-        sample_number -= 1
-        if sample_number <= 0:
-            break
+    for i in range(sample_number):
+        print(next(reader_iter))
 
 
 @client.command(help='Print sample of user information and cognition snapshots.')

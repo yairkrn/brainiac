@@ -1,9 +1,12 @@
 from .driver_binary import BinaryDriver
-
+from .driver_proto import ProtoDriver
 
 class Reader:
     # TODO: automatically collect drivers.
-    drivers = {BinaryDriver.SCHEME: BinaryDriver}
+    drivers = {
+        BinaryDriver.SCHEME: BinaryDriver,
+        ProtoDriver.SCHEME: ProtoDriver
+    }
 
     def __init__(self, url):
         self.driver = self.find_driver(url)
