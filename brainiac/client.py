@@ -34,7 +34,7 @@ def run_client(address, sample_path, sample_num):
     reader = Reader(sample_path)
 
     for i, sample in enumerate(reader):
-        if i >= sample_num:
+        if sample_num is not None and i >= sample_num:
             return
 
         connection = Connection.connect(host=address[0], port=address[1])
@@ -43,10 +43,10 @@ def run_client(address, sample_path, sample_num):
             # Follow the protocol:
 
             # i.    Send an Hello message
-            hello = HelloMessage(user_id=reader.userinfo.user_id,
-                                 username=reader.userinfo.username,
-                                 birthday=reader.userinfo.birthday,
-                                 gender=reader.userinfo.gender)
+            hello = HelloMessage(user_id=reader.user.user_id,
+                                 username=reader.user.username,
+                                 birthday=reader.user.birthday,
+                                 gender=reader.user.gender)
             connection.send_message(hello.serialize())
 
             # ii.   Receive a Config message

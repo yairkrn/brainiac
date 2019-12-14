@@ -33,7 +33,7 @@ def upload_thought(address, user_id, thought):
 @click.argument('sample-file')
 def read(sample_file, sample_number):
     reader = Reader(sample_file)
-    print(reader.userinfo)
+    print(reader.user)
 
     for snapshot in reader:
         print(snapshot)
@@ -45,7 +45,7 @@ def read(sample_file, sample_number):
 @client.command(help='Print sample of user information and cognition snapshots.')
 @click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1337),
               help='The server\'s address, in format <ip>:<port>')
-@click.option('-n', '--sample-number', required=False, default=3, type=int,
+@click.option('-n', '--sample-number', required=False, type=int,
               help='Number of sample to print.')
 @click.argument('sample-file')
 def run(address, sample_file, sample_number):

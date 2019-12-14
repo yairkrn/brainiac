@@ -1,9 +1,10 @@
 import os
+import urllib.parse as up
 
 import construct as cs
 
-from .utils import serializable
-from .utils.serializable import ByteAdapter, DateAdapter, \
+from brainiac.utils import serializable
+from brainiac.utils.serializable import ByteAdapter, DateAdapter, \
                                 DatetimeMillisecondsAdapter
 
 
@@ -135,12 +136,19 @@ class Snapshot:
                f'image.'
 
 
-class Reader:
-    def __init__(self, path):
+class BinaryDriver:
+    SCHEME = 'binary://'
+
+    def __init__(self, url):
+        path = url[len(self.SCHEME):]
         self._sample_stream = open(path, 'rb')
-        self.userinfo = UserInformation.deserialize_stream(
+        self.user_info = UserInformation.deserialize_stream(
                             self._sample_stream)
         self._file_size = os.fstat(self._sample_stream.fileno()).st_size
+
+    @property
+    def user(self):
+        return self.user_info
 
     def _is_eof(self):
         return self._sample_stream.tell() == self._file_size
