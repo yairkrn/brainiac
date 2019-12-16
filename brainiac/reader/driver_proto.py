@@ -1,8 +1,106 @@
+import datetime as dt
 import gzip
 import os
 import struct
 
 from .proto import sample_pb2 as proto
+
+
+
+class Gender:
+    _TO_CHAR = {
+        proto.User.Gender.MALE: 'm',
+        proto.User.Gender.FEMALE: 'f',
+        proto.User.Gender.OTHER: 'o'
+    }
+
+    _TO_STRING = {
+        'm': 'male',
+        'f': 'female',
+        'o': 'other'
+    }
+
+    def __init__(self, gender):
+        self.gender = self._TO_CHAR[gender]
+        # TODO: check if does not exist.
+        self._gender_str = self._TO_STRING[self.gender]
+
+    def __str__(self):
+        return self._gender_str
+
+
+class UserInformation:
+    def __init__(self, user_information_proto):
+        self.user_id = user_information_proto.user_id
+        self.username = user_information_proto.username
+        self.birthday = dt.datetime.fromtimestamp(user_information_proto.birthday)
+        self.gender = Gender(user_information_proto.gender)
+
+    def __str__(self):
+        return f'user {self.user_id}: {self.username}, born {self.birthday}' +\
+               f' ({self.gender})'
+
+
+class ColorImage:
+    def __init__(self, color_image_proto):
+        self.h = color_image_proto.height
+        self.w = color_image_proto.width
+        self.colors = color_image_proto.data
+
+
+class DepthImage:
+    def __init__(self, depth_image_proto):
+        self.h = depth_image_proto.height
+        self.w = depth_image_proto.width
+        self.depths = depth_image_proto.data
+
+
+class Translation:
+    def __init__(self, translation_proto):
+        self.x = translation_proto.x
+        self.y = translation_proto.y
+        self.z = translation_proto.z
+
+    def __str__(self):
+        return repr((self.x, self.y, self.z))
+
+
+class Rotation:
+    def __init__(self, rotation_proto):
+        self.x = rotation_proto.x
+        self.y = rotation_proto.y
+        self.z = rotation_proto.z
+        self.w = rotation_proto.w
+
+    def __str__(self):
+        return repr((self.x, self.y, self.z, self.w))
+
+
+class Feelings:
+    def __init__(self, feelings_proto):
+        self.hunger = feelings_proto.hunger
+        self.thirst = feelings_proto.thirst
+        self.exhaustion = feelings_proto.exhaustion
+        self.happiness = feelings_proto.happiness
+
+
+class Snapshot:
+    _MILLISECONDS_IN_SECOND = 1000
+
+    def __init__(self, snapshot_proto):
+        self.timestamp = dt.datetime.fromtimestamp(snapshot_proto.datetime / self._MILLISECONDS_IN_SECOND)
+        self.translation = Translation(snapshot_proto.pose.translation)
+        self.rotation = Rotation(snapshot_proto.pose.rotation)
+        self.color_image = ColorImage(snapshot_proto.color_image)
+        self.depth_image = DepthImage(snapshot_proto.depth_image)
+        self.feelings = Feelings(snapshot_proto.feelings)
+
+    def __str__(self):
+        return f'Snapshot from {self.timestamp} on {self.translation} / ' + \
+               f'{self.rotation} with a {self.color_image.w}x' + \
+               f'{self.color_image.h} color image and a ' + \
+               f'{self.depth_image.w}x{self.depth_image.h} depth ' + \
+               f'image.'
 
 
 class ProtoDriver:
@@ -12,7 +110,7 @@ class ProtoDriver:
     def __init__(self, url):
         path = url[len(self.SCHEME):]
         self._sample_stream = gzip.open(path, 'rb')
-        self.user = self._read_obj(proto.User)
+        self.user = UserInformation(self._read_obj(proto.User))
         self._file_size = os.fstat(self._sample_stream.fileno()).st_size
 
     def _read_size(self):
@@ -32,4 +130,4 @@ class ProtoDriver:
 
     def __iter__(self):
         while not self._is_eof():
-            yield self._read_obj(proto.Snapshot)
+            yield Snapshot(self._read_obj(proto.Snapshot))
