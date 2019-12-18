@@ -11,3 +11,16 @@ def parse_translation(context, snapshot):
 
 
 parse_translation.field = 'translation'
+
+
+def parse_rotation(context, snapshot):
+    with open(context.directory / 'rotation.json', 'w') as writer:
+        rotation_dict = dict(
+            x=snapshot.rotation.x,
+            y=snapshot.rotation.y,
+            z=snapshot.rotation.z,
+            w=snapshot.rotation.w)
+        json.dump(rotation_dict, writer)
+
+
+parse_rotation.field = 'rotation'
