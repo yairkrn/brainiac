@@ -163,7 +163,7 @@ class SnapshotMessage:
             depth_image = DepthImage(
                 sample.depth_image.h,
                 sample.depth_image.w,
-                sample.depth_image.depth)
+                sample.depth_image.depths)
         feelings = None
         if 'feelings' in fields:
             feelings = Feelings(
