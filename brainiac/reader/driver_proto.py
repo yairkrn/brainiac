@@ -6,39 +6,20 @@ import struct
 from .proto import sample_pb2 as proto
 
 
-
-class Gender:
-    _TO_CHAR = {
-        proto.User.Gender.MALE: 'm',
-        proto.User.Gender.FEMALE: 'f',
-        proto.User.Gender.OTHER: 'o'
-    }
-
-    _TO_STRING = {
-        'm': 'male',
-        'f': 'female',
-        'o': 'other'
-    }
-
-    def __init__(self, gender):
-        self.gender = self._TO_CHAR[gender]
-        # TODO: check if does not exist.
-        self._gender_str = self._TO_STRING[self.gender]
-
-    def __str__(self):
-        return self._gender_str
-
-
 class UserInformation:
+    @staticmethod
+    def __get_gender_string(value):
+        return proto._USER_GENDER.values_by_number(value).name.lower()
+
     def __init__(self, user_information_proto):
         self.user_id = user_information_proto.user_id
         self.username = user_information_proto.username
         self.birthday = dt.datetime.fromtimestamp(user_information_proto.birthday)
-        self.gender = Gender(user_information_proto.gender)
+        self.gender = user_information_proto.gender
 
     def __str__(self):
-        return f'user {self.user_id}: {self.username}, born {self.birthday}' +\
-               f' ({self.gender})'
+        return f'user {self.user_id}: {self.username}, born {self.birthday}' + \
+               f' ({self.__get_gender_string(self.gender)})'
 
 
 class ColorImage:

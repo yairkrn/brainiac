@@ -3,8 +3,8 @@ import datetime as dt
 from .thought import Thought
 from .reader import Reader
 from .utils import Connection
-from .protocol import HelloMessage, ConfigMessage, SnapshotMessage
-
+from .protocol import HelloMessage, ConfigMessage, SnapshotMessage, build_snapshot_message_from_sample
+from . import protocol
 
 def upload_thought(address, user_id, thought):
     """
@@ -43,16 +43,18 @@ def run_client(address, sample_path, sample_num):
             # Follow the protocol:
 
             # i.    Send an Hello message
-            hello = HelloMessage(user_id=reader.user.user_id,
-                                 username=reader.user.username,
-                                 birthday=reader.user.birthday,
-                                 gender=reader.user.gender)
-            connection.send_message(hello.serialize())
+            hello = HelloMessage.build(
+                dict(user_id=reader.user.user_id,
+                     username=reader.user.username,
+                     birthday=reader.user.birthday,
+                     gender=reader.user.gender)
+            )
+            connection.send_message(hello)
 
             # ii.   Receive a Config message
-            config = ConfigMessage.deserialize(connection.receive_message())
+            config = ConfigMessage.parse(connection.receive_message())
 
             # ii.   Send a Snapshot message
-            snapshot = SnapshotMessage.from_sample(
-                sample, config.supported_fields)
-            connection.send_message(snapshot.serialize())
+            supported_fields = config.supported_fields
+            snapshot = protocol.build_snapshot_message_from_sample(sample, supported_fields)
+            connection.send_message(snapshot)

@@ -41,7 +41,7 @@ def read(sample_file, sample_number):
 
 
 @client.command(help='Print sample of user information and cognition snapshots.')
-@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1337),
+@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1339),
               help='The server\'s address, in format <ip>:<port>')
 @click.option('-n', '--sample-number', required=False, type=int,
               help='Number of sample to print.')
@@ -56,7 +56,7 @@ def server():
 
 
 @server.command(help='Run the thought server, which accepts and stores thoughts.')
-@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1337),
+@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1339),
               help='The server\'s address, in format <ip>:<port>')
 @click.argument('data-dir')
 def run(address, data_dir):
@@ -64,7 +64,7 @@ def run(address, data_dir):
 
 
 @server.command(help='Run the web server, which keeps track of stored thoughts.')
-@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1337),
+@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1339),
               help='The server\'s address, in format <ip>:<port>')
 @click.argument('data-dir')
 def webserver(address, data_dir):

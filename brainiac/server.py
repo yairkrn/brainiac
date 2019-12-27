@@ -6,7 +6,6 @@ from .parser import parser
 from .protocol import HelloMessage, ConfigMessage, SnapshotMessage
 from .utils import Listener
 
-
 BACKLOG = 1000
 
 
@@ -33,15 +32,18 @@ class ClientHandler(threading.Thread):
         # Follow the protocol:
 
         # i.    Receive an Hello message
-        hello = HelloMessage.deserialize(self._conn.receive_message())
+        hello = HelloMessage.parse(self._conn.receive_message())
 
         # ii.   Send back a Config message
-        self._conn.send_message(ConfigMessage(
-            supported_fields_number=len(parser.supported_fields),
-            supported_fields=parser.supported_fields).serialize())
+        self._conn.send_message(
+            ConfigMessage.build(
+                dict(supported_fields_number=len(parser.supported_fields),
+                     supported_fields=parser.supported_fields)
+            )
+        )
 
         # iii.  Receive a Snapshot message
-        snapshot = SnapshotMessage.deserialize(self._conn.receive_message())
+        snapshot = SnapshotMessage.parse(self._conn.receive_message())
 
         # Parse the snapshot.
         context = self.Context(
