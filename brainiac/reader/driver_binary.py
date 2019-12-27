@@ -2,120 +2,63 @@ import os
 
 import construct as cs
 
-from brainiac.utils import serializable
-from brainiac.utils.serializable import ByteAdapter, DateAdapter, \
+from ..utils.serializable import DateAdapter, \
                                 DatetimeMillisecondsAdapter
+from .types import *
 
 
-@serializable(cs.Struct(
+UserInformationStruct = cs.Struct(
     'user_id' / cs.Int64ul,
     'username' / cs.PascalString(cs.Int32ul, "ascii"),
     'birthday' / DateAdapter(cs.Int32ul),
-    'gender' / cs.Bytes(1)))
-class UserInformation:
-    def __init__(self, user_id, username, birthday, gender):
-        self.user_id = user_id
-        self.username = username
-        self.birthday = birthday
-        self.gender = gender
+    'gender' / cs.Bytes(1)
+)
 
-    def __str__(self):
-        return f'user {self.user_id}: {self.username}, born {self.birthday}' +\
-               f' ({self.gender.decode()})'
-
-
-@serializable(cs.Struct(
+ColorImageStruct = cs.Struct(
     'h' / cs.Int32ul,
     'w' / cs.Int32ul,
-    'colors' / cs.Bytes(lambda ctx: ctx.w * ctx.h * 3)))
-class ColorImage:
-    def __init__(self, h, w, colors):
-        self.h = h
-        self.w = w
-        rgb_colors = []
-        for i in range(0, len(colors), 3):
-            b, g, r = colors[i:i+3]
-            rgb_colors.extend([r, g, b])
-        self.colors = b''.join(c.to_bytes(1, 'little') for c in rgb_colors)
+    'colors' / cs.Bytes(lambda ctx: ctx.w * ctx.h * 3)
+)
 
 
-@serializable(cs.Struct(
+DepthImageStruct = cs.Struct(
     'h' / cs.Int32ul,
     'w' / cs.Int32ul,
-    'depths' / cs.Array(lambda ctx: ctx.w * ctx.h, cs.Float32l)))
-class DepthImage:
-    def __init__(self, h, w, depths):
-        self.h = h
-        self.w = w
-        self.depths = depths
+    'depths' / cs.Array(lambda ctx: ctx.w * ctx.h, cs.Float32l)
+)
 
 
-@serializable(cs.Struct(
+TranslationStruct = cs.Struct(
     'x' / cs.Float64l,
     'y' / cs.Float64l,
-    'z' / cs.Float64l))
-class Translation:
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
-
-    def __str__(self):
-        return repr((self.x, self.y, self.z))
+    'z' / cs.Float64l
+)
 
 
-@serializable(cs.Struct(
+RotationStruct = cs.Struct(
     'x' / cs.Float64l,
     'y' / cs.Float64l,
     'z' / cs.Float64l,
-    'w' / cs.Float64l))
-class Rotation:
-    def __init__(self, x, y, z, w):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.w = w
-
-    def __str__(self):
-        return repr((self.x, self.y, self.z, self.w))
+    'w' / cs.Float64l
+)
 
 
-@serializable(cs.Struct(
+FeelingsStruct = cs.Struct(
     'hunger' / cs.Float32l,
     'thirst' / cs.Float32l,
     'exhaustion' / cs.Float32l,
-    'happiness' / cs.Float32l))
-class Feelings:
-    def __init__(self, hunger, thirst, exhaustion, happiness):
-        self.hunger = hunger
-        self.thirst = thirst
-        self.exhaustion = exhaustion
-        self.happiness = happiness
+    'happiness' / cs.Float32l
+)
 
 
-@serializable(cs.Struct(
+SnapshotStruct = cs.Struct(
     'timestamp' / DatetimeMillisecondsAdapter(cs.Int64ul),
-    'translation' / Translation.struct,
-    'rotation' / Rotation.struct,
-    'color_image' / ColorImage.struct,
-    'depth_image' / DepthImage.struct,
-    'feelings' / Feelings.struct))
-class Snapshot:
-    def __init__(self, timestamp, translation, rotation, color_image,
-                 depth_image, feelings):
-        self.timestamp = timestamp
-        self.translation = translation
-        self.rotation = rotation
-        self.color_image = color_image
-        self.depth_image = depth_image
-        self.feelings = feelings
-
-    def __str__(self):
-        return f'Snapshot from {self.timestamp} on {self.translation} / ' + \
-               f'{self.rotation} with a {self.color_image.w}x' + \
-               f'{self.color_image.h} color image and a ' + \
-               f'{self.depth_image.w}x{self.depth_image.h} depth ' + \
-               f'image.'
+    'translation' / TranslationStruct,
+    'rotation' / RotationStruct,
+    'color_image' / ColorImageStruct,
+    'depth_image' / DepthImageStruct,
+    'feelings' / FeelingsStruct
+)
 
 
 class BinaryDriver:
@@ -124,8 +67,13 @@ class BinaryDriver:
     def __init__(self, url):
         path = url[len(self.SCHEME):]
         self._sample_stream = open(path, 'rb')
-        self.user_info = UserInformation.deserialize_stream(
-                            self._sample_stream)
+        user_info_struct = UserInformationStruct.parse_stream(self._sample_stream)
+        self.user_info = UserInformation(
+            user_info_struct.user_id,
+            user_info_struct.username,
+            user_info_struct.birthday,
+            user_info_struct.gender
+        )
         self._file_size = os.fstat(self._sample_stream.fileno()).st_size
 
     @property
@@ -135,6 +83,55 @@ class BinaryDriver:
     def _is_eof(self):
         return self._sample_stream.tell() == self._file_size
 
+    @classmethod
+    def _bgr_to_rgb(cls, colors):
+        rgb_colors = []
+        for i in range(0, len(colors), 3):
+            b, g, r = colors[i:i + 3]
+            rgb_colors.extend([r, g, b])
+        return b''.join(c.to_bytes(1, 'little') for c in rgb_colors)
+
+    @classmethod
+    def _struct_to_snapshot(cls, struct_obj):
+        timestamp = struct_obj.timestamp
+        translation = Translation(
+            struct_obj.translation.x,
+            struct_obj.translation.y,
+            struct_obj.translation.z
+        )
+        rotation = Rotation(
+            struct_obj.rotation.x,
+            struct_obj.rotation.y,
+            struct_obj.rotation.z,
+            struct_obj.rotation.w
+        )
+        color_image = ColorImage(
+            struct_obj.color_image.h,
+            struct_obj.color_image.w,
+            cls._bgr_to_rgb(struct_obj.color_image.colors)
+        )
+        depth_image = DepthImage(
+            struct_obj.depth_image.h,
+            struct_obj.depth_image.w,
+            struct_obj.depth_image.depths
+        )
+        feelings = Feelings(
+            struct_obj.feelings.hunger,
+            struct_obj.feelings.thirst,
+            struct_obj.feelings.exhaustion,
+            struct_obj.feelings.happiness
+        )
+        return Snapshot(
+            timestamp,
+            translation,
+            rotation,
+            color_image,
+            depth_image,
+            feelings
+        )
+
     def __iter__(self):
         while not self._is_eof():
-            yield Snapshot.deserialize_stream(self._sample_stream)
+            yield self._struct_to_snapshot(
+                SnapshotStruct.parse_stream(self._sample_stream)
+            )

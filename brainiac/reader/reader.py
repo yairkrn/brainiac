@@ -1,6 +1,7 @@
 from .driver_binary import BinaryDriver
 from .driver_proto import ProtoDriver
 
+
 class Reader:
     # TODO: automatically collect drivers.
     drivers = {

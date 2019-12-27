@@ -13,7 +13,7 @@ message User {
 }
 
 message Snapshot {
-    uint64 datetime = 1;
+        uint64 datetime = 1;
     Pose pose = 2;
     ColorImage color_image = 3;
     DepthImage depth_image = 4;

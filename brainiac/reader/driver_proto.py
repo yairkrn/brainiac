@@ -4,98 +4,29 @@ import os
 import struct
 
 from .proto import sample_pb2 as proto
-
-
-class UserInformation:
-    @classmethod
-    def _get_gender_string(cls, value):
-        return proto._USER_GENDER.values_by_number[value].name.lower()
-
-    @classmethod
-    def _get_gender_byte(cls, value):
-        return cls._get_gender_string(value)[0].encode()
-
-    def __init__(self, user_information_proto):
-        self.user_id = user_information_proto.user_id
-        self.username = user_information_proto.username
-        self.birthday = dt.datetime.fromtimestamp(user_information_proto.birthday)
-        self.gender = self._get_gender_byte(user_information_proto.gender)
-
-    def __str__(self):
-        return f'user {self.user_id}: {self.username}, born {self.birthday}' + \
-               f' ({self.gender.decode()})'
-
-
-class ColorImage:
-    def __init__(self, color_image_proto):
-        self.h = color_image_proto.height
-        self.w = color_image_proto.width
-        self.colors = color_image_proto.data
-
-
-class DepthImage:
-    def __init__(self, depth_image_proto):
-        self.h = depth_image_proto.height
-        self.w = depth_image_proto.width
-        self.depths = depth_image_proto.data
-
-
-class Translation:
-    def __init__(self, translation_proto):
-        self.x = translation_proto.x
-        self.y = translation_proto.y
-        self.z = translation_proto.z
-
-    def __str__(self):
-        return repr((self.x, self.y, self.z))
-
-
-class Rotation:
-    def __init__(self, rotation_proto):
-        self.x = rotation_proto.x
-        self.y = rotation_proto.y
-        self.z = rotation_proto.z
-        self.w = rotation_proto.w
-
-    def __str__(self):
-        return repr((self.x, self.y, self.z, self.w))
-
-
-class Feelings:
-    def __init__(self, feelings_proto):
-        self.hunger = feelings_proto.hunger
-        self.thirst = feelings_proto.thirst
-        self.exhaustion = feelings_proto.exhaustion
-        self.happiness = feelings_proto.happiness
-
-
-class Snapshot:
-    _MILLISECONDS_IN_SECOND = 1000
-
-    def __init__(self, snapshot_proto):
-        self.timestamp = dt.datetime.fromtimestamp(snapshot_proto.datetime / self._MILLISECONDS_IN_SECOND)
-        self.translation = Translation(snapshot_proto.pose.translation)
-        self.rotation = Rotation(snapshot_proto.pose.rotation)
-        self.color_image = ColorImage(snapshot_proto.color_image)
-        self.depth_image = DepthImage(snapshot_proto.depth_image)
-        self.feelings = Feelings(snapshot_proto.feelings)
-
-    def __str__(self):
-        return f'Snapshot from {self.timestamp} on {self.translation} / ' + \
-               f'{self.rotation} with a {self.color_image.w}x' + \
-               f'{self.color_image.h} color image and a ' + \
-               f'{self.depth_image.w}x{self.depth_image.h} depth ' + \
-               f'image.'
+from .types import *
 
 
 class ProtoDriver:
     SCHEME = 'proto://'
     _SIZE_STRUCT = '<I'
+    _MILLISECONDS_IN_SECOND = 1000
+    _GENDER_TO_BYTE = {
+        0: 'm',
+        1: 'f',
+        2: 'o'
+    }
 
     def __init__(self, url):
         path = url[len(self.SCHEME):]
         self._sample_stream = gzip.open(path, 'rb')
-        self.user = UserInformation(self._read_obj(proto.User))
+        user_proto = self._read_obj(proto.User)
+        self.user = UserInformation(
+            user_proto.user_id,
+            user_proto.username,
+            dt.datetime.fromtimestamp(user_proto.birthday),
+            self._GENDER_TO_BYTE[user_proto.gender]
+        )
         self._file_size = os.fstat(self._sample_stream.fileno()).st_size
 
     def _read_size(self):
@@ -113,6 +44,44 @@ class ProtoDriver:
     def _is_eof(self):
         return self._sample_stream.tell() == self._file_size
 
+    def _proto_to_snapshot(self, proto_obj):
+        timestamp = dt.datetime.fromtimestamp(proto_obj.datetime / self._MILLISECONDS_IN_SECOND)
+        translation = Translation(
+            proto_obj.pose.translation.x,
+            proto_obj.pose.translation.y,
+            proto_obj.pose.translation.z
+        )
+        rotation = Rotation(
+            proto_obj.pose.rotation.x,
+            proto_obj.pose.rotation.y,
+            proto_obj.pose.rotation.z,
+            proto_obj.pose.rotation.w
+        )
+        color_image = ColorImage(
+            proto_obj.color_image.height,
+            proto_obj.color_image.width,
+            proto_obj.color_image.data
+        )
+        depth_image = DepthImage(
+            proto_obj.depth_image.height,
+            proto_obj.depth_image.width,
+            proto_obj.depth_image.data
+        )
+        feelings = Feelings(
+            proto_obj.feelings.hunger,
+            proto_obj.feelings.thirst,
+            proto_obj.feelings.exhaustion,
+            proto_obj.feelings.happiness
+        )
+        return Snapshot(
+            timestamp,
+            translation,
+            rotation,
+            color_image,
+            depth_image,
+            feelings
+        )
+
     def __iter__(self):
         while not self._is_eof():
-            yield Snapshot(self._read_obj(proto.Snapshot))
+            yield self._proto_to_snapshot(self._read_obj(proto.Snapshot))
