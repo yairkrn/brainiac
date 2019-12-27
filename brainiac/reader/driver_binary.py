@@ -3,9 +3,8 @@ import os
 import construct as cs
 
 from ..utils.serializable import DateAdapter, \
-                                DatetimeMillisecondsAdapter
+    DatetimeMillisecondsAdapter
 from .types import *
-
 
 UserInformationStruct = cs.Struct(
     'user_id' / cs.Int64ul,
@@ -20,20 +19,17 @@ ColorImageStruct = cs.Struct(
     'colors' / cs.Bytes(lambda ctx: ctx.w * ctx.h * 3)
 )
 
-
 DepthImageStruct = cs.Struct(
     'h' / cs.Int32ul,
     'w' / cs.Int32ul,
     'depths' / cs.Array(lambda ctx: ctx.w * ctx.h, cs.Float32l)
 )
 
-
 TranslationStruct = cs.Struct(
     'x' / cs.Float64l,
     'y' / cs.Float64l,
     'z' / cs.Float64l
 )
-
 
 RotationStruct = cs.Struct(
     'x' / cs.Float64l,
@@ -42,14 +38,12 @@ RotationStruct = cs.Struct(
     'w' / cs.Float64l
 )
 
-
 FeelingsStruct = cs.Struct(
     'hunger' / cs.Float32l,
     'thirst' / cs.Float32l,
     'exhaustion' / cs.Float32l,
     'happiness' / cs.Float32l
 )
-
 
 SnapshotStruct = cs.Struct(
     'timestamp' / DatetimeMillisecondsAdapter(cs.Int64ul),

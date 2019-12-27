@@ -11,10 +11,10 @@ class ProtoDriver:
     SCHEME = 'proto://'
     _SIZE_STRUCT = '<I'
     _MILLISECONDS_IN_SECOND = 1000
-    _GENDER_TO_BYTE = {
-        0: 'm',
-        1: 'f',
-        2: 'o'
+    _GENDER_INT_TO_BYTE = {
+        0: b'm',
+        1: b'f',
+        2: b'o'
     }
 
     def __init__(self, url):
@@ -25,7 +25,7 @@ class ProtoDriver:
             user_proto.user_id,
             user_proto.username,
             dt.datetime.fromtimestamp(user_proto.birthday),
-            self._GENDER_TO_BYTE[user_proto.gender]
+            self._GENDER_INT_TO_BYTE[user_proto.gender]
         )
         self._file_size = os.fstat(self._sample_stream.fileno()).st_size
 
