@@ -7,7 +7,7 @@ HelloMessage = cs.Struct(
     'user_id' / cs.Int64ul,
     'username' / cs.PascalString(cs.Int32ul, "ascii"),
     'birthday' / DateAdapter(cs.Int32ul),
-    'gender' / cs.Byte
+    'gender' / cs.Bytes(1)
 )
 
 ColorImage = cs.Struct(
@@ -59,49 +59,32 @@ ConfigMessage = cs.Struct(
 
 
 def build_snapshot_message_from_sample(sample, fields):
-    timestamp = sample.timestamp
-    translation = None
+    field_values = {'timestamp': sample.timestamp}
     if 'translation' in fields:
-        translation = (
+        field_values['translation'] = \
             dict(x=sample.translation.x,
                  y=sample.translation.y,
                  z=sample.translation.z)
-        )
-    rotation = None
     if 'rotation' in fields:
-        rotation = (
+        field_values['rotation'] = \
             dict(x=sample.rotation.x,
                  y=sample.rotation.y,
                  z=sample.rotation.z,
                  w=sample.rotation.w)
-        )
-    color_image = None
     if 'color_image' in fields:
-        color_image = (
+        field_values['color_image'] = \
             dict(h=sample.color_image.h,
                  w=sample.color_image.w,
                  colors=sample.color_image.colors)
-        )
-    depth_image = None
     if 'depth_image' in fields:
-        depth_image = (
+        field_values['depth_image'] = \
             dict(h=sample.depth_image.h,
                  w=sample.depth_image.w,
                  depths=sample.depth_image.depths)
-        )
-    feelings = None
     if 'feelings' in fields:
-        feelings = (
+        field_values['feelings'] = \
             dict(hunger=sample.feelings.hunger,
                  thirst=sample.feelings.thirst,
                  exhaustion=sample.feelings.exhaustion,
                  happiness=sample.feelings.happiness)
-        )
-    return SnapshotMessage.build(
-        dict(timestamp=timestamp,
-             translation=translation,
-             rotation=rotation,
-             color_image=color_image,
-             depth_image=depth_image,
-             feelings=feelings)
-    )
+    return SnapshotMessage.build(field_values)

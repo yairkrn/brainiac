@@ -7,19 +7,23 @@ from .proto import sample_pb2 as proto
 
 
 class UserInformation:
-    @staticmethod
-    def __get_gender_string(value):
-        return proto._USER_GENDER.values_by_number(value).name.lower()
+    @classmethod
+    def _get_gender_string(cls, value):
+        return proto._USER_GENDER.values_by_number[value].name.lower()
+
+    @classmethod
+    def _get_gender_byte(cls, value):
+        return cls._get_gender_string(value)[0].encode()
 
     def __init__(self, user_information_proto):
         self.user_id = user_information_proto.user_id
         self.username = user_information_proto.username
         self.birthday = dt.datetime.fromtimestamp(user_information_proto.birthday)
-        self.gender = user_information_proto.gender
+        self.gender = self._get_gender_byte(user_information_proto.gender)
 
     def __str__(self):
         return f'user {self.user_id}: {self.username}, born {self.birthday}' + \
-               f' ({self.__get_gender_string(self.gender)})'
+               f' ({self.gender.decode()})'
 
 
 class ColorImage:

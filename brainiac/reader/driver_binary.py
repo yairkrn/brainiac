@@ -1,5 +1,4 @@
 import os
-import urllib.parse as up
 
 import construct as cs
 
@@ -8,28 +7,11 @@ from brainiac.utils.serializable import ByteAdapter, DateAdapter, \
                                 DatetimeMillisecondsAdapter
 
 
-@serializable(cs.Struct('gender' / ByteAdapter(cs.Byte)))
-class Gender:
-    _TO_STRING = {
-        'm': 'male',
-        'f': 'female',
-        'o': 'other'
-    }
-
-    def __init__(self, gender):
-        self.gender = gender
-        # TODO: check if does not exist.
-        self._gender_str = self._TO_STRING[gender]
-
-    def __str__(self):
-        return self._gender_str
-
-
 @serializable(cs.Struct(
     'user_id' / cs.Int64ul,
     'username' / cs.PascalString(cs.Int32ul, "ascii"),
     'birthday' / DateAdapter(cs.Int32ul),
-    'gender' / Gender.struct))
+    'gender' / cs.Bytes(1)))
 class UserInformation:
     def __init__(self, user_id, username, birthday, gender):
         self.user_id = user_id
@@ -39,13 +21,13 @@ class UserInformation:
 
     def __str__(self):
         return f'user {self.user_id}: {self.username}, born {self.birthday}' +\
-               f' ({self.gender})'
+               f' ({self.gender.decode()})'
 
 
 @serializable(cs.Struct(
     'h' / cs.Int32ul,
     'w' / cs.Int32ul,
-    'colors' / cs.Array(lambda ctx: ctx.w * ctx.h * 3, cs.Byte)))
+    'colors' / cs.Bytes(lambda ctx: ctx.w * ctx.h * 3)))
 class ColorImage:
     def __init__(self, h, w, colors):
         self.h = h
@@ -54,7 +36,7 @@ class ColorImage:
         for i in range(0, len(colors), 3):
             b, g, r = colors[i:i+3]
             rgb_colors.extend([r, g, b])
-        self.colors = rgb_colors
+        self.colors = b''.join(c.to_bytes(1, 'little') for c in rgb_colors)
 
 
 @serializable(cs.Struct(
