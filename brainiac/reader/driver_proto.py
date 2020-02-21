@@ -3,7 +3,7 @@ import gzip
 import struct
 
 from .proto import sample_pb2 as proto
-from .types import *
+from .common import *
 
 
 class ProtoDriver:

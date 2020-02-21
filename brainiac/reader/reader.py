@@ -21,12 +21,14 @@ class Reader:
         self.driver = self.find_driver(url, open_function)
 
     def find_open(self, url):
+        # TODO: parse the url using furl
         for suffix, open_function in self.suffix_openers.items():
             if url.endswith(suffix):
                 return open_function
         return open
 
     def find_driver(self, url, open_function):
+        # TODO: parse the url using furl
         for scheme, cls in self.drivers.items():
             if url.startswith(scheme):
                 return cls(url, open_function)
