@@ -2,9 +2,9 @@ import contextlib
 import pathlib
 import threading
 
-from .parser import parser
-from .protocol import HelloMessage, ConfigMessage, SnapshotMessage
-from .utils import Listener
+from ..parser import parser
+from ..protocol import HelloMessage, ConfigMessage, SnapshotMessage
+from ..utils import Listener
 
 BACKLOG = 1000
 
@@ -51,17 +51,9 @@ class ClientHandler(threading.Thread):
         parser.parse(context, snapshot)
 
 
-def run_server(address, data_dir):
-    """
-    Initiate a server, running at given address
-        and handling incoming connecitons.
-
-    Args:
-        address ((str, int)): the ip address and port to listen on.
-        data_dir (str): a directory path in which to save clients' data.
-    """
+def run_server(host, port, data_dir):
     data_dir = pathlib.Path(data_dir)
-    with Listener(host=address[0], port=address[1]) as listener:
+    with Listener(host=host, port=port) as listener:
         with contextlib.suppress(KeyboardInterrupt):
             while True:
                 client_connection = listener.accept()
