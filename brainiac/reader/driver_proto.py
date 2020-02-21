@@ -1,6 +1,5 @@
 import datetime as dt
 import gzip
-import os
 import struct
 
 from .proto import sample_pb2 as proto
@@ -17,9 +16,9 @@ class ProtoDriver:
         2: b'o'
     }
 
-    def __init__(self, url):
+    def __init__(self, url, open_function):
         path = url[len(self.SCHEME):]
-        self._sample_stream = gzip.open(path, 'rb')
+        self._sample_stream = open_function(path, 'rb')
         user_proto = self._read_obj(proto.User)
         self.user = UserInformation(
             user_proto.user_id,
@@ -27,7 +26,6 @@ class ProtoDriver:
             dt.datetime.fromtimestamp(user_proto.birthday),
             self._GENDER_INT_TO_BYTE[user_proto.gender]
         )
-        self._file_size = os.fstat(self._sample_stream.fileno()).st_size
 
     def _read_size(self):
         size_bytes = \
@@ -42,7 +40,9 @@ class ProtoDriver:
         return obj
 
     def _is_eof(self):
-        return self._sample_stream.tell() == self._file_size
+        is_eof = not self._sample_stream.read(1)
+        self._sample_stream.seek(-1, 1)
+        return is_eof
 
     def _proto_to_snapshot(self, proto_obj):
         timestamp = dt.datetime.fromtimestamp(proto_obj.datetime / self._MILLISECONDS_IN_SECOND)

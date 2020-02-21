@@ -1,10 +1,8 @@
-import os
-
 import construct as cs
 
+from .types import *
 from ..utils.serializable import DateAdapter, \
     DatetimeMillisecondsAdapter
-from .types import *
 
 UserInformationStruct = cs.Struct(
     'user_id' / cs.Int64ul,
@@ -58,9 +56,9 @@ SnapshotStruct = cs.Struct(
 class BinaryDriver:
     SCHEME = 'binary://'
 
-    def __init__(self, url):
+    def __init__(self, url, open_function):
         path = url[len(self.SCHEME):]
-        self._sample_stream = open(path, 'rb')
+        self._sample_stream = open_function(path, 'rb')
         user_info_struct = UserInformationStruct.parse_stream(self._sample_stream)
         self.user_info = UserInformation(
             user_info_struct.user_id,
@@ -68,14 +66,15 @@ class BinaryDriver:
             user_info_struct.birthday,
             user_info_struct.gender
         )
-        self._file_size = os.fstat(self._sample_stream.fileno()).st_size
 
     @property
     def user(self):
         return self.user_info
 
     def _is_eof(self):
-        return self._sample_stream.tell() == self._file_size
+        is_eof = not self._sample_stream.read(1)
+        self._sample_stream.seek(-1, 1)
+        return is_eof
 
     @classmethod
     def _bgr_to_rgb(cls, colors):
