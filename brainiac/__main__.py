@@ -1,10 +1,9 @@
 import click
 
-from . import Reader
-from . import run_server as _run_server
-from . import run_webserver as _run_webserver
-from . import upload_thought as _upload_thought
-from . import run_client as _run_client
+from .reader.reader import Reader
+from .server import run_server as _run_server
+from .client import upload_sample as _upload_sample
+from .web import run_webserver as _run_weserver
 
 
 @click.group()
@@ -12,42 +11,27 @@ def cli():
     pass
 
 
-@cli.group(help='Client related utilities.')
+@cli.group(help='Client related utilities')
 def client():
     pass
 
 
-@client.command(help='Upload a thought to the thought server.')
-@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1337),
-              help='The server\'s address, in format <ip>:<port>')
-@click.option('-u', '--user-id', type=int, required=True,
-              help='The user\'s unique identifying number')
-@click.argument('thought')
-def upload_thought(address, user_id, thought):
-    _upload_thought(address, user_id, thought)
-
-
-@client.command(help='Print sample of user information and cognition snapshots.')
-@click.option('-n', '--sample-number', required=False, default=3, type=int,
-              help='Number of sample to print.')
-@click.argument('sample-file')
-def read(sample_file, sample_number):
-    reader = Reader(sample_file)
+@client.command(help='Print sample metadata')
+@click.argument('sample-path')
+def read_sample(sample_path):
+    reader = Reader(sample_path)
     print(reader.user)
-    reader_iter = iter(reader)
-
-    for i in range(sample_number):
-        print(next(reader_iter))
+    for sample in reader:
+        print(sample)
 
 
-@client.command(help='Print sample of user information and cognition snapshots.')
-@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1339),
-              help='The server\'s address, in format <ip>:<port>')
-@click.option('-n', '--sample-number', required=False, type=int,
-              help='Number of sample to print.')
-@click.argument('sample-file')
-def run(address, sample_file, sample_number):
-    _run_client(address, sample_file, sample_number)
+@client.command(help='Upload sample to server')
+@click.option('-h', '--host', type=str, default="127.0.0.1",
+              help='Server\'s host address')
+@click.option('-p', '--port', type=int, default=1337, help='Server\'s listening port')
+@click.argument('sample-path')
+def upload_sample(host, port, sample_path):
+    _upload_sample(host, port, sample_path)
 
 
 @cli.group(help='Server related utilities.')
@@ -56,7 +40,7 @@ def server():
 
 
 @server.command(help='Run the thought server, which accepts and stores thoughts.')
-@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1339),
+@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1337),
               help='The server\'s address, in format <ip>:<port>')
 @click.argument('data-dir')
 def run(address, data_dir):
@@ -64,7 +48,7 @@ def run(address, data_dir):
 
 
 @server.command(help='Run the web server, which keeps track of stored thoughts.')
-@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1339),
+@click.option('-a', '--address', type=(str, int), default=('127.0.0.1', 1337),
               help='The server\'s address, in format <ip>:<port>')
 @click.argument('data-dir')
 def webserver(address, data_dir):

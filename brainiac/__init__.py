@@ -1,4 +1,4 @@
-from .client import upload_thought, run_client
+from .client import upload_sample
 from brainiac.reader.reader import Reader
 from .server import run_server
 from .thought import Thought
