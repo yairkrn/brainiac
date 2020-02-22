@@ -2,6 +2,8 @@ import contextlib
 import pathlib
 import threading
 
+from ..server import data_types
+from ..message_queue.messages import MQSnapshotMessage
 from ..config import config
 from ..parser import parser
 from ..protocol import HelloMessage, ConfigMessage, SnapshotMessage
@@ -10,6 +12,7 @@ from ..utils import Listener
 
 class ClientHandler(threading.Thread):
     TIME_FORMAT = '%Y-%m-%d_%H-%M-%S-%f'
+    SNAPSHOT_FILENAME = config['server-snapshot-filename']
     lock = threading.Lock()
 
     class Context:
@@ -28,6 +31,21 @@ class ClientHandler(threading.Thread):
         user_dir.mkdir(parents=True, exist_ok=True)
         return user_dir
 
+    def _save_snapshot(self, hello_message, snapshot_message, fields):
+        user_dir = self._get_user_dir(hello_message.user_id, snapshot_message.timestamp)
+        snapshot_file = user_dir / self.SNAPSHOT_FILENAME
+        snapshot = data_types.snapshot_message_to_snapshot(snapshot_message, fields)
+        snapshot_file.write_bytes(snapshot)
+        return snapshot_file
+
+    def _build_message(self, hello_message, snapshot_message, fields):
+        snapshot_path = self._save_snapshot(hello_message, snapshot_message, fields)
+        return MQSnapshotMessage(
+            user_id=hello_message.user_id,
+            snapshot_path=str(snapshot_path),
+            fields=fields
+        )
+
     def run(self):
         # Follow the protocol:
 
@@ -43,15 +61,17 @@ class ClientHandler(threading.Thread):
         )
 
         # iii.  Receive a Snapshot message
-        raw_snapshot = self._conn.receive_message()
-        snapshot = SnapshotMessage.parse(raw_snapshot)
+        snapshot_message = SnapshotMessage.parse(self._conn.receive_message())
+        published_message = self._build_message(hello, snapshot_message, parser.supported_fields)
 
+        # Publish the message
+        self._publish(published_message)
 
         # TODO: move to parsers microservice
         # Parse the snapshot.
         context = self.Context(
-            self._get_user_dir(hello.user_id, snapshot.timestamp))
-        parser.parse(context, snapshot)
+            self._get_user_dir(hello.user_id, snapshot_message.timestamp))
+        parser.parse(context, snapshot_message)
 
 
 def run_server(host, port, publish):

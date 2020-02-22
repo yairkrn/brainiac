@@ -10,8 +10,12 @@ class MessageQueue:
     def _find_driver(self):
         modules = imports.import_by_glob(__package__, 'driver_*.py')
         for module in modules:
-            classes = imports.get_class_by_regex(module, '[a-z]+Driver')
+            classes = imports.get_class_by_regex(module, '[A-Za-z]+Driver')
             for cls in classes:
                 if cls.SCHEME == self._url.scheme:
                     return cls(self._url)
         raise RuntimeError(f'No MessageQueue driver found for {self._url}')
+
+    def publish(self, message, queue):
+        self._driver.publish(message, queue)
+

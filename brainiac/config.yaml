@@ -1,3 +1,0 @@
-mq-queue-name: brainiac-mq
-server-backlog: 1000
-server-local-dir: data

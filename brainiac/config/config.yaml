@@ -1,0 +1,4 @@
+parsers-message-queue: parsers
+server-backlog: 1000
+server-local-dir: data
+server-snapshot-filename: snapshot
