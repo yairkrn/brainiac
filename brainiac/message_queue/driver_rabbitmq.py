@@ -1,0 +1,2 @@
+class RabbitMQDriver:
+    SCHEME = 'rabbitmq'
