@@ -31,7 +31,7 @@ class Reader:
             for cls in classes:
                 if cls.SCHEME == self._url.scheme:
                     return cls(self._url, open_function)
-        raise RuntimeError(f'No MessageQueue driver found for {self._url}')
+        raise RuntimeError(f'No Reader driver found for {self._url}')
 
     @property
     def user(self):
