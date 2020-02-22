@@ -7,7 +7,7 @@ from .common import *
 
 
 class ProtoDriver:
-    SCHEME = 'proto://'
+    SCHEME = 'proto'
     _SIZE_STRUCT = '<I'
     _MILLISECONDS_IN_SECOND = 1000
     _GENDER_INT_TO_BYTE = {
@@ -17,7 +17,7 @@ class ProtoDriver:
     }
 
     def __init__(self, url, open_function):
-        path = url[len(self.SCHEME):]
+        path = url.host
         self._sample_stream = open_function(path, 'rb')
         user_proto = self._read_obj(proto.User)
         self.user = UserInformation(

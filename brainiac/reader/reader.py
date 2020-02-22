@@ -1,42 +1,41 @@
 import collections
 import gzip
 
+from ..utils import imports
 from .driver_binary import BinaryDriver
 from .driver_proto import ProtoDriver
 
+from furl import furl
+
 
 class Reader:
-    # TODO: automatically collect drivers.
-    drivers = {
-        BinaryDriver.SCHEME: BinaryDriver,
-        ProtoDriver.SCHEME: ProtoDriver
-    }
-
     suffix_openers = {
         '.gz': gzip.open
     }
 
     def __init__(self, url):
-        open_function = self.find_open(url)
-        self.driver = self.find_driver(url, open_function)
+        self._url = furl(url)
+        open_function = self._find_open()
+        self._driver = self._find_driver(open_function)
 
-    def find_open(self, url):
-        # TODO: parse the url using furl
+    def _find_open(self):
         for suffix, open_function in self.suffix_openers.items():
-            if url.endswith(suffix):
+            if str(self._url.host).endswith(suffix):
                 return open_function
         return open
 
-    def find_driver(self, url, open_function):
-        # TODO: parse the url using furl
-        for scheme, cls in self.drivers.items():
-            if url.startswith(scheme):
-                return cls(url, open_function)
-        raise ValueError(f'Url ({url}) does not match supported schemes: {list(self.drivers.keys())}')
+    def _find_driver(self, open_function):
+        modules = imports.import_by_glob(__package__, 'driver_*.py')
+        for module in modules:
+            classes = imports.get_class_by_regex(module, '[A-Za-z]+Driver')
+            for cls in classes:
+                if cls.SCHEME == self._url.scheme:
+                    return cls(self._url, open_function)
+        raise RuntimeError(f'No MessageQueue driver found for {self._url}')
 
     @property
     def user(self):
-        return self.driver.user
+        return self._driver.user
 
     def __iter__(self):
-        yield from self.driver
+        yield from self._driver

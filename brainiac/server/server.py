@@ -2,11 +2,10 @@ import contextlib
 import pathlib
 import threading
 
+from ..config import config
 from ..parser import parser
 from ..protocol import HelloMessage, ConfigMessage, SnapshotMessage
 from ..utils import Listener
-
-BACKLOG = 1000
 
 
 class ClientHandler(threading.Thread):
@@ -17,10 +16,11 @@ class ClientHandler(threading.Thread):
         def __init__(self, directory):
             self.directory = directory
 
-    def __init__(self, conn, data_dir):
+    def __init__(self, conn, publish):
         super().__init__()
         self._conn = conn
-        self._data_dir = data_dir
+        self._publish = publish
+        self._data_dir = pathlib.Path(config['server-local-dir'])
 
     def _get_user_dir(self, user_id, timestamp):
         formatted_time = timestamp.strftime(self.TIME_FORMAT)
@@ -43,18 +43,20 @@ class ClientHandler(threading.Thread):
         )
 
         # iii.  Receive a Snapshot message
-        snapshot = SnapshotMessage.parse(self._conn.receive_message())
+        raw_snapshot = self._conn.receive_message()
+        snapshot = SnapshotMessage.parse(raw_snapshot)
 
+
+        # TODO: move to parsers microservice
         # Parse the snapshot.
         context = self.Context(
             self._get_user_dir(hello.user_id, snapshot.timestamp))
         parser.parse(context, snapshot)
 
 
-def run_server(host, port, data_dir):
-    data_dir = pathlib.Path(data_dir)
-    with Listener(host=host, port=port) as listener:
+def run_server(host, port, publish):
+    with Listener(host=host, port=port, backlog=config['server-backlog']) as listener:
         with contextlib.suppress(KeyboardInterrupt):
             while True:
                 client_connection = listener.accept()
-                ClientHandler(client_connection, data_dir).start()
+                ClientHandler(client_connection, publish).start()
