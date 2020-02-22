@@ -58,33 +58,33 @@ ConfigMessage = cs.Struct(
 )
 
 
-def build_snapshot_message_from_sample(sample, fields):
-    field_values = {'timestamp': sample.timestamp}
+def snapshot_to_snapshot_message(snapshot, fields):
+    field_values = {'timestamp': snapshot.timestamp}
     if 'translation' in fields:
         field_values['translation'] = \
-            dict(x=sample.translation.x,
-                 y=sample.translation.y,
-                 z=sample.translation.z)
+            dict(x=snapshot.translation.x,
+                 y=snapshot.translation.y,
+                 z=snapshot.translation.z)
     if 'rotation' in fields:
         field_values['rotation'] = \
-            dict(x=sample.rotation.x,
-                 y=sample.rotation.y,
-                 z=sample.rotation.z,
-                 w=sample.rotation.w)
+            dict(x=snapshot.rotation.x,
+                 y=snapshot.rotation.y,
+                 z=snapshot.rotation.z,
+                 w=snapshot.rotation.w)
     if 'color_image' in fields:
         field_values['color_image'] = \
-            dict(h=sample.color_image.h,
-                 w=sample.color_image.w,
-                 colors=sample.color_image.colors)
+            dict(h=snapshot.color_image.h,
+                 w=snapshot.color_image.w,
+                 colors=snapshot.color_image.colors)
     if 'depth_image' in fields:
         field_values['depth_image'] = \
-            dict(h=sample.depth_image.h,
-                 w=sample.depth_image.w,
-                 depths=sample.depth_image.depths)
+            dict(h=snapshot.depth_image.h,
+                 w=snapshot.depth_image.w,
+                 depths=snapshot.depth_image.depths)
     if 'feelings' in fields:
         field_values['feelings'] = \
-            dict(hunger=sample.feelings.hunger,
-                 thirst=sample.feelings.thirst,
-                 exhaustion=sample.feelings.exhaustion,
-                 happiness=sample.feelings.happiness)
+            dict(hunger=snapshot.feelings.hunger,
+                 thirst=snapshot.feelings.thirst,
+                 exhaustion=snapshot.feelings.exhaustion,
+                 happiness=snapshot.feelings.happiness)
     return SnapshotMessage.build(field_values)

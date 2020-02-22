@@ -27,5 +27,5 @@ def upload_sample(host, port, path):
 
             # ii.   Send a Snapshot message
             supported_fields = config.supported_fields
-            snapshot = protocol.build_snapshot_message_from_sample(sample, supported_fields)
+            snapshot = protocol.snapshot_to_snapshot_message(sample, supported_fields)
             connection.send_message(snapshot)

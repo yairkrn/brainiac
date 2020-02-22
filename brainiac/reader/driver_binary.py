@@ -1,6 +1,6 @@
 import construct as cs
 
-from .common import *
+from .data_types import *
 from ..utils.serializable import DateAdapter, \
     DatetimeMillisecondsAdapter
 

@@ -1,14 +1,5 @@
 import construct as cs
 
-from ..utils.serializable import DateAdapter, DatetimeMillisecondsAdapter
-
-HelloMessage = cs.Struct(
-    'user_id' / cs.Int64ul,
-    'username' / cs.PascalString(cs.Int32ul, "ascii"),
-    'birthday' / DateAdapter(cs.Int32ul),
-    'gender' / cs.Bytes(1)
-)
-
 ColorImage = cs.Struct(
     'h' / cs.Int32ul,
     'w' / cs.Int32ul,
@@ -41,49 +32,35 @@ Feelings = cs.Struct(
     'happiness' / cs.Float32l
 )
 
-SnapshotMessage = cs.Struct(
-    'timestamp' / DatetimeMillisecondsAdapter(cs.Int64ul),
-    'translation' / Translation,
-    'rotation' / Rotation,
-    'color_image' / ColorImage,
-    'depth_image' / DepthImage,
-    'feelings' / Feelings
-)
 
-ConfigMessage = cs.Struct(
-    'supported_fields_number' / cs.Int32ul,
-    'supported_fields' / cs.Array(lambda ctx: ctx.supported_fields_number,
-                                  cs.PascalString(cs.Int32ul, "ascii"))
-)
-
-
-def build_snapshot_message_from_sample(sample, fields):
-    field_values = {'timestamp': sample.timestamp}
+# FIXME: rename
+def snapshot_message_to_products(sample, fields):
+    res = {}
     if 'translation' in fields:
-        field_values['translation'] = \
-            dict(x=sample.translation.x,
-                 y=sample.translation.y,
-                 z=sample.translation.z)
+        res['translation'] = \
+            Translation.build(dict(x=sample.translation.x,
+                                   y=sample.translation.y,
+                                   z=sample.translation.z))
     if 'rotation' in fields:
-        field_values['rotation'] = \
-            dict(x=sample.rotation.x,
-                 y=sample.rotation.y,
-                 z=sample.rotation.z,
-                 w=sample.rotation.w)
+        res['rotation'] = \
+            Rotation.build(dict(x=sample.rotation.x,
+                                y=sample.rotation.y,
+                                z=sample.rotation.z,
+                                w=sample.rotation.w))
     if 'color_image' in fields:
-        field_values['color_image'] = \
-            dict(h=sample.color_image.h,
-                 w=sample.color_image.w,
-                 colors=sample.color_image.colors)
+        res['color_image'] = \
+            ColorImage.build(dict(h=sample.color_image.h,
+                                  w=sample.color_image.w,
+                                  colors=sample.color_image.colors))
     if 'depth_image' in fields:
-        field_values['depth_image'] = \
-            dict(h=sample.depth_image.h,
-                 w=sample.depth_image.w,
-                 depths=sample.depth_image.depths)
+        res['depth_image'] = \
+            DepthImage.build(dict(h=sample.depth_image.h,
+                                  w=sample.depth_image.w,
+                                  depths=sample.depth_image.depths))
     if 'feelings' in fields:
-        field_values['feelings'] = \
-            dict(hunger=sample.feelings.hunger,
-                 thirst=sample.feelings.thirst,
-                 exhaustion=sample.feelings.exhaustion,
-                 happiness=sample.feelings.happiness)
-    return SnapshotMessage.build(field_values)
+        res['feelings'] = \
+            Feelings.build(dict(hunger=sample.feelings.hunger,
+                                thirst=sample.feelings.thirst,
+                                exhaustion=sample.feelings.exhaustion,
+                                happiness=sample.feelings.happiness))
+    return res

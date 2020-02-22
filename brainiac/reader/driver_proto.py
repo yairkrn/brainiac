@@ -1,9 +1,8 @@
 import datetime as dt
-import gzip
 import struct
 
 from .proto import sample_pb2 as proto
-from .common import *
+from .data_types import *
 
 
 class ProtoDriver:
