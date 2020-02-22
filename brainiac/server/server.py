@@ -2,11 +2,12 @@ import contextlib
 import pathlib
 import threading
 
-from ..server import data_types
-from ..message_queue.messages import MQSnapshotMessage
+from ..server.data_types import ServerSnapshot, ServerColorImage, ServerDepthImage, ServerFeelings, ServerRotation,\
+    ServerTranslation
+from ..message_queue.data_types import MessageQueueProduct
 from ..config import config
 from ..parser import parser
-from ..protocol import HelloMessage, ConfigMessage, SnapshotMessage
+from ..protocol.data_types import ProtocolHello, ProtocolConfig, ProtocolSnapshot
 from ..utils import Listener
 
 
@@ -31,47 +32,74 @@ class ClientHandler(threading.Thread):
         user_dir.mkdir(parents=True, exist_ok=True)
         return user_dir
 
-    def _save_snapshot(self, hello_message, snapshot_message, fields):
-        user_dir = self._get_user_dir(hello_message.user_id, snapshot_message.timestamp)
-        snapshot_file = user_dir / self.SNAPSHOT_FILENAME
-        snapshot = data_types.snapshot_message_to_snapshot(snapshot_message, fields)
-        snapshot_file.write_bytes(snapshot)
-        return snapshot_file
+    def _save_product(self, user_id, timestamp, product_name, product):
+        user_dir = self._get_user_dir(user_id, timestamp)
+        product_file = user_dir / product_name
+        product_file.write_bytes(product)
+        return product_file
 
-    def _build_message(self, hello_message, snapshot_message, fields):
-        snapshot_path = self._save_snapshot(hello_message, snapshot_message, fields)
-        return MQSnapshotMessage(
-            user_id=hello_message.user_id,
-            snapshot_path=str(snapshot_path),
-            fields=fields
-        )
+    def _get_product_message(self, user_id, timestamp, product_name, product):
+        product_path = self._save_product(user_id, timestamp, product_name, product)
+        return MessageQueueProduct(user_id, timestamp.strftime(self.TIME_FORMAT), str(product_path))
+
+    @classmethod
+    def message_queue_products_from_protocol_snapshot(cls, snapshot, fields):
+        products = {}
+        if 'translation' in fields:
+            products['translation'] = ServerTranslation.build(
+                dict(x=snapshot.translation.x,
+                     y=snapshot.translation.y,
+                     z=snapshot.translation.z))
+        if 'rotation' in fields:
+            products['rotation'] = ServerRotation.build(
+                dict(x=snapshot.rotation.x,
+                     y=snapshot.rotation.y,
+                     z=snapshot.rotation.z,
+                     w=snapshot.rotation.w))
+        if 'color_image' in fields:
+            products['color_image'] = ServerColorImage.build(
+                dict(h=snapshot.color_image.h,
+                     w=snapshot.color_image.w,
+                     colors=snapshot.color_image.colors))
+        if 'depth_image' in fields:
+            products['depth_image'] = ServerDepthImage.build(
+                dict(h=snapshot.depth_image.h,
+                     w=snapshot.depth_image.w,
+                     depths=snapshot.depth_image.depths))
+        if 'feelings' in fields:
+            products['feelings'] = ServerFeelings.build(
+                dict(hunger=snapshot.feelings.hunger,
+                     thirst=snapshot.feelings.thirst,
+                     exhaustion=snapshot.feelings.exhaustion,
+                     happiness=snapshot.feelings.happiness))
+        return products
 
     def run(self):
-        # Follow the protocol:
+        # receive an Hello message
+        hello = ProtocolHello.parse(self._conn.receive_message())
 
-        # i.    Receive an Hello message
-        hello = HelloMessage.parse(self._conn.receive_message())
-
-        # ii.   Send back a Config message
+        # send back a Config message
         self._conn.send_message(
-            ConfigMessage.build(
+            ProtocolConfig.build(
                 dict(supported_fields_number=len(parser.supported_fields),
                      supported_fields=parser.supported_fields)
             )
         )
 
-        # iii.  Receive a Snapshot message
-        snapshot_message = SnapshotMessage.parse(self._conn.receive_message())
-        published_message = self._build_message(hello, snapshot_message, parser.supported_fields)
+        # receive a Snapshot message
+        snapshot = ProtocolSnapshot.parse(self._conn.receive_message())
 
-        # Publish the message
-        self._publish(published_message)
+        # publish the messages
+        products = self.message_queue_products_from_protocol_snapshot(snapshot, parser.supported_fields)
+        for name, product in products.items():
+            product_message = self._get_product_message(hello.user_id, snapshot.timestamp, name, product)
+            self._publish(product_message, 'parsers', name)  # TODO: refactor
 
         # TODO: move to parsers microservice
-        # Parse the snapshot.
+        # parse the snapshot
         context = self.Context(
-            self._get_user_dir(hello.user_id, snapshot_message.timestamp))
-        parser.parse(context, snapshot_message)
+            self._get_user_dir(hello.user_id, snapshot.timestamp))
+        parser.parse(context, snapshot)
 
 
 def run_server(host, port, publish):

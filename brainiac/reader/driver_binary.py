@@ -55,16 +55,21 @@ SnapshotStruct = cs.Struct(
 
 class BinaryDriver:
     SCHEME = 'binary'
+    _GENDER_BYTE_TO_STR = {
+        b'm': 'male',
+        b'f': 'female',
+        b'o': 'other'
+    }
 
     def __init__(self, url, open_function):
         path = url.host
         self._sample_stream = open_function(path, 'rb')
         user_info_struct = UserInformationStruct.parse_stream(self._sample_stream)
-        self.user_info = UserInformation(
+        self.user_info = ReaderUserInformation(
             user_info_struct.user_id,
             user_info_struct.username,
             user_info_struct.birthday,
-            user_info_struct.gender
+            self._GENDER_BYTE_TO_STR[user_info_struct.gender]
         )
 
     @property
@@ -85,36 +90,36 @@ class BinaryDriver:
         return b''.join(c.to_bytes(1, 'little') for c in rgb_colors)
 
     @classmethod
-    def _struct_to_snapshot(cls, struct_obj):
-        timestamp = struct_obj.timestamp
-        translation = Translation(
-            struct_obj.translation.x,
-            struct_obj.translation.y,
-            struct_obj.translation.z
+    def _reader_snapshot_from_binary(cls, snapshot):
+        timestamp = snapshot.timestamp
+        translation = ReaderTranslation(
+            snapshot.translation.x,
+            snapshot.translation.y,
+            snapshot.translation.z
         )
-        rotation = Rotation(
-            struct_obj.rotation.x,
-            struct_obj.rotation.y,
-            struct_obj.rotation.z,
-            struct_obj.rotation.w
+        rotation = ReaderRotation(
+            snapshot.rotation.x,
+            snapshot.rotation.y,
+            snapshot.rotation.z,
+            snapshot.rotation.w
         )
-        color_image = ColorImage(
-            struct_obj.color_image.h,
-            struct_obj.color_image.w,
-            cls._bgr_to_rgb(struct_obj.color_image.colors)
+        color_image = ReaderColorImage(
+            snapshot.color_image.h,
+            snapshot.color_image.w,
+            cls._bgr_to_rgb(snapshot.color_image.colors)
         )
-        depth_image = DepthImage(
-            struct_obj.depth_image.h,
-            struct_obj.depth_image.w,
-            struct_obj.depth_image.depths
+        depth_image = ReaderDepthimage(
+            snapshot.depth_image.h,
+            snapshot.depth_image.w,
+            snapshot.depth_image.depths
         )
-        feelings = Feelings(
-            struct_obj.feelings.hunger,
-            struct_obj.feelings.thirst,
-            struct_obj.feelings.exhaustion,
-            struct_obj.feelings.happiness
+        feelings = ReaderFeelings(
+            snapshot.feelings.hunger,
+            snapshot.feelings.thirst,
+            snapshot.feelings.exhaustion,
+            snapshot.feelings.happiness
         )
-        return Snapshot(
+        return ReaderSnapshot(
             timestamp,
             translation,
             rotation,
@@ -125,6 +130,6 @@ class BinaryDriver:
 
     def __iter__(self):
         while not self._is_eof():
-            yield self._struct_to_snapshot(
+            yield self._reader_snapshot_from_binary(
                 SnapshotStruct.parse_stream(self._sample_stream)
             )

@@ -1,5 +1,6 @@
 from furl import furl
 from ..utils import imports
+from ..config import config
 
 
 class MessageQueue:
@@ -16,6 +17,10 @@ class MessageQueue:
                     return cls(self._url)
         raise RuntimeError(f'No MessageQueue driver found for {self._url}')
 
-    def publish(self, message, queue):
-        self._driver.publish(message, queue)
+    def publish(self, message, exchange=None, routing_key=None):
+        if exchange is None:
+            exchange = config['message-queue-default-exchange']
+        if routing_key is None:
+            routing_key = config['message-queue-default-routing-key']
+        self._driver.publish(message, exchange, routing_key)
 

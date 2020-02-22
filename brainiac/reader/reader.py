@@ -1,11 +1,8 @@
-import collections
 import gzip
 
-from ..utils import imports
-from .driver_binary import BinaryDriver
-from .driver_proto import ProtoDriver
-
 from furl import furl
+
+from ..utils import imports
 
 
 class Reader:

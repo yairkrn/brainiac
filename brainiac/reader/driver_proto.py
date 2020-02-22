@@ -9,21 +9,21 @@ class ProtoDriver:
     SCHEME = 'proto'
     _SIZE_STRUCT = '<I'
     _MILLISECONDS_IN_SECOND = 1000
-    _GENDER_INT_TO_BYTE = {
-        0: b'm',
-        1: b'f',
-        2: b'o'
+    _GENDER_INT_TO_STR = {
+        0: 'male',
+        1: 'female',
+        2: 'other'
     }
 
     def __init__(self, url, open_function):
         path = url.host
         self._sample_stream = open_function(path, 'rb')
         user_proto = self._read_obj(proto.User)
-        self.user = UserInformation(
+        self.user = ReaderUserInformation(
             user_proto.user_id,
             user_proto.username,
             dt.datetime.fromtimestamp(user_proto.birthday),
-            self._GENDER_INT_TO_BYTE[user_proto.gender]
+            self._GENDER_INT_TO_STR[user_proto.gender]
         )
 
     def _read_size(self):
@@ -43,36 +43,37 @@ class ProtoDriver:
         self._sample_stream.seek(-1, 1)
         return is_eof
 
-    def _proto_to_snapshot(self, proto_obj):
-        timestamp = dt.datetime.fromtimestamp(proto_obj.datetime / self._MILLISECONDS_IN_SECOND)
-        translation = Translation(
-            proto_obj.pose.translation.x,
-            proto_obj.pose.translation.y,
-            proto_obj.pose.translation.z
+    @classmethod
+    def _reader_snapshot_from_proto(cls, snapshot):
+        timestamp = dt.datetime.fromtimestamp(snapshot.datetime / cls._MILLISECONDS_IN_SECOND)
+        translation = ReaderTranslation(
+            snapshot.pose.translation.x,
+            snapshot.pose.translation.y,
+            snapshot.pose.translation.z
         )
-        rotation = Rotation(
-            proto_obj.pose.rotation.x,
-            proto_obj.pose.rotation.y,
-            proto_obj.pose.rotation.z,
-            proto_obj.pose.rotation.w
+        rotation = ReaderRotation(
+            snapshot.pose.rotation.x,
+            snapshot.pose.rotation.y,
+            snapshot.pose.rotation.z,
+            snapshot.pose.rotation.w
         )
-        color_image = ColorImage(
-            proto_obj.color_image.height,
-            proto_obj.color_image.width,
-            proto_obj.color_image.data
+        color_image = ReaderColorImage(
+            snapshot.color_image.height,
+            snapshot.color_image.width,
+            snapshot.color_image.data
         )
-        depth_image = DepthImage(
-            proto_obj.depth_image.height,
-            proto_obj.depth_image.width,
-            proto_obj.depth_image.data
+        depth_image = ReaderDepthimage(
+            snapshot.depth_image.height,
+            snapshot.depth_image.width,
+            snapshot.depth_image.data
         )
-        feelings = Feelings(
-            proto_obj.feelings.hunger,
-            proto_obj.feelings.thirst,
-            proto_obj.feelings.exhaustion,
-            proto_obj.feelings.happiness
+        feelings = ReaderFeelings(
+            snapshot.feelings.hunger,
+            snapshot.feelings.thirst,
+            snapshot.feelings.exhaustion,
+            snapshot.feelings.happiness
         )
-        return Snapshot(
+        return ReaderSnapshot(
             timestamp,
             translation,
             rotation,
@@ -83,4 +84,4 @@ class ProtoDriver:
 
     def __iter__(self):
         while not self._is_eof():
-            yield self._proto_to_snapshot(self._read_obj(proto.Snapshot))
+            yield self._reader_snapshot_from_proto(self._read_obj(proto.Snapshot))

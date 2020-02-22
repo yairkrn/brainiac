@@ -1,14 +1,10 @@
 import attr
 
+# TODO: force types?
+
 
 @attr.s
-class UserInformation:
-    _GENDER_BYTE_TO_STR = {
-        b'm': 'male',
-        b'f': 'female',
-        b'o': 'other'
-    }
-
+class ReaderUserInformation:
     user_id = attr.attrib()
     username = attr.attrib()
     birthday = attr.attrib()
@@ -16,25 +12,25 @@ class UserInformation:
 
     def __str__(self):
         return f'user {self.user_id}: {self.username}, born {self.birthday}' \
-               f' ({self._GENDER_BYTE_TO_STR[self.gender]})'
+               f' ({self.gender})'
 
 
 @attr.s
-class ColorImage:
+class ReaderColorImage:
     h = attr.attrib()
     w = attr.attrib()
     colors = attr.attrib()
 
 
 @attr.s
-class DepthImage:
+class ReaderDepthimage:
     h = attr.attrib()
     w = attr.attrib()
     depths = attr.attrib()
 
 
 @attr.s
-class Translation:
+class ReaderTranslation:
     x = attr.attrib()
     y = attr.attrib()
     z = attr.attrib()
@@ -44,7 +40,7 @@ class Translation:
 
 
 @attr.s
-class Rotation:
+class ReaderRotation:
     x = attr.attrib()
     y = attr.attrib()
     z = attr.attrib()
@@ -55,7 +51,7 @@ class Rotation:
 
 
 @attr.s
-class Feelings:
+class ReaderFeelings:
     hunger = attr.attrib()
     thirst = attr.attrib()
     exhaustion = attr.attrib()
@@ -63,7 +59,7 @@ class Feelings:
 
 
 @attr.s
-class Snapshot:
+class ReaderSnapshot:
     timestamp = attr.attrib()
     translation = attr.attrib()
     rotation = attr.attrib()

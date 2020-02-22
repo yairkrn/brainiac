@@ -15,6 +15,6 @@ class RabbitMQDriver:
         self._conn = pika.BlockingConnection(self._connection_params)
         self._channel = self._conn.channel()
 
-    def publish(self, message, queue):
+    def publish(self, message, exchange, routing_key):
         # TODO: implement, might need more parameters
-        print(message)
+        print(exchange, routing_key, message)

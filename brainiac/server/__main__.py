@@ -16,8 +16,9 @@ def cli():
 @click.option('-p', '--port', type=int, default=1337, help='Server\'s listening port')
 @click.argument('url')
 def run_server(host, port, url):
-    def publish(message):
-        MessageQueue(url).publish(message, config['parsers-message-queue'])
+    def publish(message, exchange, routing_key):  # TODO: should accept one argument
+                                                  # Should probably be passed to MessageQueue
+        MessageQueue(url).publish(message, exchange, routing_key)
     _run_server(host, port, publish)
 
 
