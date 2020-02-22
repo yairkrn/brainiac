@@ -54,10 +54,10 @@ SnapshotStruct = cs.Struct(
 
 
 class BinaryDriver:
-    SCHEME = 'binary://'
+    SCHEME = 'binary'
 
     def __init__(self, url, open_function):
-        path = url[len(self.SCHEME):]
+        path = url.host
         self._sample_stream = open_function(path, 'rb')
         user_info_struct = UserInformationStruct.parse_stream(self._sample_stream)
         self.user_info = UserInformation(
