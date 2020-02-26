@@ -9,18 +9,14 @@ class MessageQueue:
         self._driver = self._find_driver()
 
     def _find_driver(self):
-        modules = imports.import_by_glob(__package__, 'driver_*.py')
+        modules = imports.import_by_glob(__package__, 'driver_*.py')  # TODO: move to consts
         for module in modules:
-            classes = imports.get_class_by_regex(module, '[A-Za-z]+Driver')
+            classes = imports.get_class_by_regex(module, '[A-Za-z]+Driver')  # TODO: move to consts
             for cls in classes:
                 if cls.SCHEME == self._url.scheme:
                     return cls(self._url)
         raise RuntimeError(f'No MessageQueue driver found for {self._url}')
 
-    def publish(self, message, exchange=None, routing_key=None):
-        if exchange is None:
-            exchange = config['message-queue-default-exchange']
-        if routing_key is None:
-            routing_key = config['message-queue-default-routing-key']
-        self._driver.publish(message, exchange, routing_key)
+    def publish(self, message, tag):
+        self._driver.publish(message, tag)
 

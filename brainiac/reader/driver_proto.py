@@ -29,19 +29,18 @@ class ProtoDriver:
     def _read_size(self):
         size_bytes = \
             self._sample_stream.read(struct.calcsize(self._SIZE_STRUCT))
+        if not size_bytes:
+            return None
         return struct.unpack(self._SIZE_STRUCT, size_bytes)[0]
 
     def _read_obj(self, obj_cls):
         obj_size = self._read_size()
+        if obj_size is None:
+            return None
         obj = obj_cls()
         obj_str = self._sample_stream.read(obj_size)
         obj.ParseFromString(obj_str)
         return obj
-
-    def _is_eof(self):
-        is_eof = not self._sample_stream.read(1)
-        self._sample_stream.seek(-1, 1)
-        return is_eof
 
     @classmethod
     def _reader_snapshot_from_proto(cls, snapshot):
@@ -83,5 +82,9 @@ class ProtoDriver:
         )
 
     def __iter__(self):
-        while not self._is_eof():
-            yield self._reader_snapshot_from_proto(self._read_obj(proto.Snapshot))
+        while True:
+            snapshot_proto = self._read_obj(proto.Snapshot)
+            if snapshot_proto is None:
+                return
+            snapshot = self._reader_snapshot_from_proto(snapshot_proto)
+            yield snapshot

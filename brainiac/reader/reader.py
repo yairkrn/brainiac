@@ -2,11 +2,12 @@ import gzip
 
 from furl import furl
 
+from .driver_proto import ProtoDriver
 from ..utils import imports
 
 
 class Reader:
-    suffix_openers = {
+    _SUFFIX_TO_OPEN_FUNCTION = {
         '.gz': gzip.open
     }
 
@@ -16,19 +17,20 @@ class Reader:
         self._driver = self._find_driver(open_function)
 
     def _find_open(self):
-        for suffix, open_function in self.suffix_openers.items():
+        for suffix, open_function in self._SUFFIX_TO_OPEN_FUNCTION.items():
             if str(self._url.host).endswith(suffix):
                 return open_function
         return open
 
     def _find_driver(self, open_function):
-        modules = imports.import_by_glob(__package__, 'driver_*.py')
+        modules = imports.import_by_glob(__package__, 'driver_*.py')  # TODO: move to consts
         for module in modules:
-            classes = imports.get_class_by_regex(module, '[A-Za-z]+Driver')
+            classes = imports.get_class_by_regex(module, '[A-Za-z]+Driver')  # TODO: move to consts
             for cls in classes:
                 if cls.SCHEME == self._url.scheme:
                     return cls(self._url, open_function)
-        raise RuntimeError(f'No Reader driver found for {self._url}')
+        # no driver found, take proto as default
+        return ProtoDriver(self._url, open_function)
 
     @property
     def user(self):

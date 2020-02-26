@@ -1,3 +1,4 @@
+import construct
 import construct as cs
 
 from .data_types import *
@@ -76,11 +77,6 @@ class BinaryDriver:
     def user(self):
         return self.user_info
 
-    def _is_eof(self):
-        is_eof = not self._sample_stream.read(1)
-        self._sample_stream.seek(-1, 1)
-        return is_eof
-
     @classmethod
     def _bgr_to_rgb(cls, colors):
         rgb_colors = []
@@ -129,7 +125,11 @@ class BinaryDriver:
         )
 
     def __iter__(self):
-        while not self._is_eof():
-            yield self._reader_snapshot_from_binary(
-                SnapshotStruct.parse_stream(self._sample_stream)
-            )
+        while True:
+            try:
+                yield self._reader_snapshot_from_binary(
+                    SnapshotStruct.parse_stream(self._sample_stream)
+                )
+            except construct.StreamError:
+                return
+
