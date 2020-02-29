@@ -6,11 +6,9 @@ from ..config import config
 
 
 class MessageQueue:
-    def __init__(self, url, tag, message_type):
+    def __init__(self, url):
         self._url = furl(url)
         self._driver = self._find_driver()
-        self._tag = tag
-        self._message_type = message_type
 
     def _find_driver(self):
         modules = imports.import_by_glob(__package__, 'driver_*.py')  # TODO: move to consts
@@ -21,12 +19,12 @@ class MessageQueue:
                     return cls(self._url)
         raise RuntimeError(f'No MessageQueue driver found for {self._url}')
 
-    def publish(self, message):
-        self._driver.publish(self._tag, message.serialize())
+    def publish(self, tag, message):
+        self._driver.publish(tag, message.serialize())
 
-    def consume(self, callback):
+    def consume(self, tag, message_type, callback):
         def _consumer_callback(message):
-            message = self._message_type.deserialize(message)
+            message = message_type.deserialize(message)
             callback(message)
-        self._driver.register_consumer(self._tag, _consumer_callback)
+        self._driver.register_consumer(tag, _consumer_callback)
         self._driver.start_consuming()
