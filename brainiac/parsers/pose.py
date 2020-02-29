@@ -24,3 +24,11 @@ def parse_rotation(context, snapshot):
 
 
 parse_rotation.field = 'rotation'
+
+
+def parse_pose(context, snapshot):
+    parse_translation(context, snapshot)
+    parse_rotation(context, snapshot)
+
+
+parse_pose.field = 'pose'

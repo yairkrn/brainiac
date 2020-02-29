@@ -1,3 +1,4 @@
+from ..message_queue.data_types import ServerParsersMessage
 from . import run_server as _run_server
 from ..config import config
 from ..message_queue import MessageQueue
@@ -18,7 +19,7 @@ def cli():
 def run_server(host, port, url):
     def publish(message):
         tag = config['message-queue-parsers-tag']
-        MessageQueue(url).publish(message, tag)
+        MessageQueue(url, tag, ServerParsersMessage).publish(message)
     _run_server(host, port, publish)
 
 

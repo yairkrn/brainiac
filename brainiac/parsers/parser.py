@@ -2,10 +2,18 @@ import importlib
 import inspect
 import pathlib
 
+import attr
+
+from ..server.data_types import ServerSnapshot
+
+
+@attr.s
+class Context:
+    directory = attr.ib()
+
 
 class Parser:
-    _PARSERS_DIR = 'parsers'
-    _PARSERS_SUBPACKAGE = f'.{_PARSERS_DIR}'
+    _PARSERS_SUBPACKAGE = f'.parsers'
     _PARSER_FUNCTION_PREFIX = 'parse'
     _PARSER_CLASS_SUFFIX = 'Parser'
     _PARSER_FIELD_ATTRIBUTE = 'field'
@@ -15,10 +23,10 @@ class Parser:
         self._class_parsers = []
         self._collect_parsers()
 
-    def _collect_parsers(self):
+    def _collect_parsers(self):  # TODO: use import util
         # Iterate all modules in the parsers subpackage
         current_path = pathlib.Path(__file__).parent
-        parsers_path = current_path / self._PARSERS_DIR
+        parsers_path = current_path
         for module_path in parsers_path.glob('[!_]*.py'):
             parser_module = self._import_parser_module(module_path.stem)
 
@@ -29,11 +37,10 @@ class Parser:
     def _import_parser_module(self, module_name):
         # Remove this module's name to obtain the package
         current_package = '.'.join(__name__.split('.')[:-1])
-        return importlib.import_module(f'{self._PARSERS_SUBPACKAGE}.'
-                                       f'{module_name}',
+        return importlib.import_module(f'.{module_name}',
                                        package=current_package)
 
-    def _get_function_parsers(self, module):
+    def _get_function_parsers(self, module):  # TODO: use import util
         parsers = []
         for name, item in module.__dict__.items():
             if not inspect.isfunction(item):
@@ -45,7 +52,7 @@ class Parser:
             parsers.append(item)
         return parsers
 
-    def _get_class_parsers(self, module):
+    def _get_class_parsers(self, module):  # TODO: use import util
         parsers = []
         for name, item in module.__dict__.items():
             if not inspect.isclass(item):
@@ -62,11 +69,20 @@ class Parser:
         return [_parser.field for _parser in
                 self._function_parsers + self._class_parsers]
 
-    def parse(self, context, snapshot):
-        for function_parser in self._function_parsers:
-            function_parser(context, snapshot)
-        for class_parser in self._class_parsers:
-            class_parser.parse(context, snapshot)
+    def parse(self, field, data):
+        storage = pathlib.Path('./results/')
+        storage.mkdir(exist_ok=True)
+        context = Context(storage)  # TODO: storage manager
+        snapshot = ServerSnapshot.parse(data)
+        for p in self._function_parsers:
+            if p.field == field:
+                return p(context, snapshot)
+        for p in self._class_parsers:  # TODO: should not differ from function case
+            if p.field == field:
+                return p.parse(context, snapshot)
+        raise RuntimeError('No parser found!')  # TODO: handle error
 
 
-parser = Parser()
+def run_parser(field, data):
+    parser = Parser()
+    return parser.parse(field, data)

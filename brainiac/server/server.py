@@ -3,9 +3,9 @@ import pathlib
 import threading
 
 from ..server import data_types
-from ..message_queue.data_types import MessageQueueSnapshot
+from ..message_queue.data_types import ServerParsersMessage
 from ..config import config
-from ..parser import parser
+from ..parsers.parser import Parser
 from ..protocol.data_types import ProtocolHello, ProtocolConfig, ProtocolSnapshot
 from ..utils import Listener
 
@@ -40,7 +40,7 @@ class ClientHandler(threading.Thread):
 
     def _build_message(self, hello_message, snapshot_message, fields):
         snapshot_path = self._save_snapshot(hello_message, snapshot_message, fields)
-        return MessageQueueSnapshot(
+        return ServerParsersMessage(
             user_id=hello_message.user_id,
             timestamp=snapshot_message.timestamp,
             snapshot_path=str(snapshot_path.absolute())
@@ -52,26 +52,22 @@ class ClientHandler(threading.Thread):
         # i.    Receive an Hello message
         hello = ProtocolHello.parse(self._conn.receive_message())
 
+        # TODO: server should not be coupled with parsers
+        supported_fields = Parser().supported_fields
         # ii.   Send back a Config message
         self._conn.send_message(
             ProtocolConfig.build(
-                dict(supported_fields_number=len(parser.supported_fields),
-                     supported_fields=parser.supported_fields)
+                dict(supported_fields_number=len(supported_fields),
+                     supported_fields=supported_fields)
             )
         )
 
         # iii.  Receive a Snapshot message
         snapshot_message = ProtocolSnapshot.parse(self._conn.receive_message())
-        published_message = self._build_message(hello, snapshot_message, parser.supported_fields)
+        published_message = self._build_message(hello, snapshot_message, supported_fields)
 
         # Publish the message
-        self._publish(published_message.serialize())
-
-        # TODO: move to parsers microservice
-        # Parse the snapshot.
-        context = self.Context(
-            self._get_user_dir(hello.user_id, snapshot_message.timestamp))
-        parser.parse(context, snapshot_message)
+        self._publish(published_message)
 
 
 def run_server(host, port, publish):
