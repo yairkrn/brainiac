@@ -1,3 +1,4 @@
+from ..utils import logger
 from ..protocol.data_types import ProtocolHello, ProtocolConfig, ProtocolSnapshot
 from ..reader import Reader
 from ..utils import Connection
@@ -57,14 +58,16 @@ def upload_sample(host, port, path):
         connection = Connection.connect(host=host, port=port)
 
         with connection:
-            # send Hello message
+            logger.info('sending hello message')
             hello = _protocol_hello_from_reader_user(reader.user)
             connection.send_message(hello)
 
-            # receive config message
+            logger.info('waiting for config message')
             config = ProtocolConfig.parse(connection.receive_message())
 
-            # send snapshot message
-            supported_fields = config.supported_fields
+            supported_fields = list(config.supported_fields)
+            logger.info(f'supported fields: {supported_fields}')
+
+            logger.info('sending snapshot message')
             protocol_snapshot = _protocol_snapshot_from_reader_snapshot(reader_snapshot, supported_fields)
             connection.send_message(protocol_snapshot)
