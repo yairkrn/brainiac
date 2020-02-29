@@ -19,7 +19,7 @@ def cli():
 def run_server(host, port, url):
     def publish(message):
         tag = config['message-queue-parsers-tag']
-        MessageQueue(url).publish(message, tag)
+        MessageQueue(url).publish(tag, message)
     _run_server(host, port, publish)
 
 

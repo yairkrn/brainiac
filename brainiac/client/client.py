@@ -1,7 +1,9 @@
-from ..utils import logger
+from ..utils import get_logger
 from ..protocol.data_types import ProtocolHello, ProtocolConfig, ProtocolSnapshot
 from ..reader import Reader
 from ..utils import Connection
+
+logger = get_logger()
 
 _GENDER_STR_TO_BYTE = {
     'male': b'm',

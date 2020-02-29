@@ -1,7 +1,10 @@
 from . import upload_sample as _upload_sample
 from .. import Reader
-from ..utils import logger
+from ..utils import get_logger
 import click
+
+
+logger = get_logger()
 
 
 @click.group()
